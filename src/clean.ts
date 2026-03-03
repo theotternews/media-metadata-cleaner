@@ -125,7 +125,7 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
   return new CleanRaw(origTags, cleanedFilename, cleanedTags, errors, warnings);
 }
 
-export async function processFiles(filenames: string[]): Promise<CleanedResult[]> {
+export async function processFiles(filenames: string[], loadImageData: boolean): Promise<CleanedResult[]> {
   const results: CleanedResult[] = [];
   for (const filename of filenames) {
     let cleanRaw: CleanRaw;
@@ -143,16 +143,25 @@ export async function processFiles(filenames: string[]): Promise<CleanedResult[]
       continue;
     }
 
-    const [readCode, readMessage, origImageData] = await invoke<[number, string, string]>('read_file', { path: filename });
-    if (readCode !== 0) {
-      console.error(`Error reading file ${filename}: ${readMessage}`);
-    }
-    const origMimeType = MimeTypes.lookup(filename) as string;
+    let origImageData = '';
+    let cleanedImageData = '';
+    if (loadImageData) {
+      const [readCode, readMessage, data] = await invoke<[number, string, string]>('read_file', { path: filename });
+      if (readCode !== 0) {
+        console.error(`Error reading file ${filename}: ${readMessage}`);
+      } else {
+        origImageData = data;
+      }
 
-    const [cleanedReadCode, cleanedReadMessage, cleanedImageData] = await invoke<[number, string, string]>('read_file', { path: cleanRaw.cleanedFilename });
-    if (cleanedReadCode !== 0) {
-      console.error(`Error reading file ${cleanRaw.cleanedFilename}: ${cleanedReadMessage}`);
+      const [cleanedReadCode, cleanedReadMessage, cleanedData] = await invoke<[number, string, string]>('read_file', { path: cleanRaw.cleanedFilename });
+      if (cleanedReadCode !== 0) {
+        console.error(`Error reading file ${cleanRaw.cleanedFilename}: ${cleanedReadMessage}`);
+      } else {
+        cleanedImageData = cleanedData;
+      }
     }
+
+    const origMimeType = MimeTypes.lookup(filename) as string;
     const cleanedMimeType = MimeTypes.lookup(cleanRaw.cleanedFilename) as string;
 
     results.push(

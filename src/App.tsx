@@ -1,6 +1,6 @@
 import { open } from '@tauri-apps/plugin-dialog';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { type ReactNode, useState, useCallback } from 'react';
+import { type ReactNode, useRef, useState, useCallback } from 'react';
 import Accordion from 'react-bootstrap/Accordion';
 import type { CleanedResult } from './types';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -79,6 +79,7 @@ function resultStatusClass(result: CleanedResult): string {
 }
 
 function ResultAccordionItem({ result, index }: { result: CleanedResult; index: number }) {
+  const hasImageData = (result.origImage?.imageData ?? '') !== '' || (result.cleanedImage?.imageData ?? '') !== '';
   return (
     <Accordion.Item eventKey={index.toString()} className={resultStatusClass(result)}>
       <Accordion.Header>{result.origImage.filename}</Accordion.Header>
@@ -86,12 +87,12 @@ function ResultAccordionItem({ result, index }: { result: CleanedResult; index: 
         <div>
           {makeCard('Error(s)', result.errors.map(styleMessage), 'text-danger')}
           {makeCard('Warning(s)', result.warnings.map(styleMessage), 'text-warning')}
-          {((result.origImage?.imageData ?? '') !== '' || (result.cleanedImage?.imageData ?? '') !== '') && (
+          {hasImageData && (
             <div className="grid-container">
               <div className="grid-item"><h6 className="my-0">Original</h6></div>
               <div className="grid-item"><h6 className="my-0">Cleaned</h6></div>
-              <div className="grid-item"><img src={`data:${result.origImage.mimeType};base64,${result.origImage.imageData}`} alt="Original" /></div>
-              <div className="grid-item"><img src={`data:${result.cleanedImage.mimeType};base64,${result.cleanedImage.imageData}`} alt="Cleaned" /></div>
+              <div className="grid-item">{result.origImage.imageData ? <img src={`data:${result.origImage.mimeType};base64,${result.origImage.imageData}`} alt="Original" /> : null}</div>
+              <div className="grid-item">{result.cleanedImage.imageData ? <img src={`data:${result.cleanedImage.mimeType};base64,${result.cleanedImage.imageData}`} alt="Cleaned" /> : null}</div>
               <div className="grid-item"><pre>{result.origImage.tags}</pre></div>
               <div className="grid-item"><pre>{result.cleanedImage.tags}</pre></div>
             </div>
@@ -106,6 +107,7 @@ function App() {
   const [cleanedResults, setCleanedResults] = useState<CleanedResult[]>([]);
   const [notesActiveKey, setNotesActiveKey] = useState<AccordionKey>('0');
   const [resultsActiveKey, setResultsActiveKey] = useState<AccordionKey>(undefined);
+  const loadMediaRef = useRef<HTMLInputElement>(null);
 
   const onChooseFiles = useCallback(async () => {
     setNotesActiveKey(undefined);
@@ -120,7 +122,8 @@ function App() {
     if (files == null) {
         return;
     }
-    const cleanedResults = await processFiles(files);
+    const loadImageData = loadMediaRef.current?.checked ?? true;
+    const cleanedResults = await processFiles(files, loadImageData);
     console.log(cleanedResults);
     setCleanedResults(cleanedResults);
   }, []);
@@ -138,9 +141,23 @@ function App() {
         </Accordion.Item>
       </Accordion>
 
-      <button type="button" className="btn btn-primary" onClick={onChooseFiles}>
-        Choose files to clean...
-      </button>
+      <div className="d-flex align-items-center gap-3 mb-4">
+        <button type="button" className="btn btn-primary" onClick={onChooseFiles}>
+          Choose files to clean...
+        </button>
+        <div className="form-check">
+          <input
+            ref={loadMediaRef}
+            className="form-check-input"
+            type="checkbox"
+            id="showMedia"
+            defaultChecked
+          />
+          <label className="form-check-label" htmlFor="showMedia">
+            Show media (uncheck when processing many media files at once)
+          </label>
+        </div>
+      </div>
 
       {cleanedResults.length > 0 && (
         <div>
