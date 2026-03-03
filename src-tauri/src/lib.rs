@@ -45,7 +45,7 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
         .menu(|handle| {
-            let quit = MenuItem::with_id(handle, "quit", "Quit", true, None::<&str>)?;
+            let quit = MenuItem::with_id(handle, "quit", "Quit", true, Some("CmdOrCtrl+Q"))?;
             let file = Submenu::with_items(handle, "File", true, &[&quit])?;
 
             let report = MenuItem::with_id(handle, "report_problem", "Report a Problem", true, None::<&str>)?;
