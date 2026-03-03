@@ -2,6 +2,8 @@
 
 set -e
 
+echo ${env}
+
 exiftool_bin_prefix="media-metadata-cleaner_exiftool"
 base_dir=$(dirname ${0})/..
 
