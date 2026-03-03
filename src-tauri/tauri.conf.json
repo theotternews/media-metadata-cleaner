@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "bash scripts/get_latest_exiftool.sh && npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "bash scripts/get_latest_exiftool.sh && APPIMAGE_EXTRACT_AND_RUN=1 NO_STRIP=true npm run build",
+    "beforeBuildCommand": "bash scripts/get_latest_exiftool.sh && npm run build",
     "frontendDist": "../dist"
   },
   "app": {
