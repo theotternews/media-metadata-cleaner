@@ -26,7 +26,10 @@ function linux_mac_setup() {
     curl -s -o ${work_dir}/exiftool-archive.tgz -L "${archive_url}"
     tar -xzf ${work_dir}/exiftool-archive.tgz -C ${work_dir}
     rm -rf ${base_dir}/src-tauri/bin/exiftool ${base_dir}/src-tauri/bin/lib
-    cp ${work_dir}/Image-ExifTool-$version/exiftool ${base_dir}/src-tauri/bin/${exiftool_bin_prefix}-${target_triple}
+
+    exe_name=${base_dir}/src-tauri/bin/${exiftool_bin_prefix}-${target_triple}
+    cp ${work_dir}/Image-ExifTool-$version/exiftool ${exe_name}
+    echo wrote exe ${exe_name}
 
     mkdir -p ${base_dir}/src-tauri/bin/lib
     rsync -a ${work_dir}/Image-ExifTool-$version/lib/* ${base_dir}/src-tauri/bin/lib/
@@ -61,7 +64,10 @@ function windows_setup() {
     fi
     rm -rf ${base_dir}/src-tauri/bin/exiftool.exe ${base_dir}/src-tauri/bin/exiftool_files
 
-    cp ${work_dir}/exiftool-${version}_32/exiftool\(-k\).exe ${base_dir}/src-tauri/bin/${exiftool_bin_prefix}-${target_triple}.exe
+    exe_name=${base_dir}/src-tauri/bin/${exiftool_bin_prefix}-${target_triple}.exe
+    cp ${work_dir}/exiftool-${version}_32/exiftool\(-k\).exe ${exe_name}
+    echo wrote exe ${exe_name}
+
     cp -r ${work_dir}/exiftool-${version}_32/exiftool_files ${base_dir}/src-tauri/bin/
 
     echo "exiftool for ${target_triple} setup complete"
