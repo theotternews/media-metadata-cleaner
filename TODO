@@ -1,12 +1,14 @@
 # -*- mode: org; -*-
 * TODO
-** System vs packaged libs on linux (version mismatch warning)
-** deb doesn't take libs with it :(
+** memory issues
 ** diff the tags for display - https://github.com/rtfpessoa/diff2html?tab=readme-ov-file
 ** Less saturated accordian title colors
-** build actions on codeberg
+** build actions on codeberg - 18.04
 ** video display
 ** warnings and errors in error box ??
+** duplicate warnings and errors
+* WONTFIX
+** Strip distributable on linux - https://github.com/tauri-apps/tauri/issues/14796
 * DONE
 ** Test on mac - works
 ** Test on windows - works
@@ -16,6 +18,8 @@
 ** Verify -all:all= really cleans the stuff we want
 *** seems like it doesn't? exiftool -G0 -a -U -ee
 *** but use a two pass soln with the second removing time tags. as good as we can get
-** remove system tags
-WONTFIX
-** Strip distributable on linux - https://github.com/tauri-apps/tauri/issues/14796
+** remove system group tags
+** linux lib packaging
+*** System vs packaged libs on linux (version mismatch warning)
+*** deb doesn't take libs with it :(
+*** export before build for app image

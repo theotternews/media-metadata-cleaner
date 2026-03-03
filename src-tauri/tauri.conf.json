@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "org.otternews.media-metadata-cleaner",
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "bash scripts/get_latest_exiftool.sh && npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "sh scripts/get_latest_exiftool.sh && npm run build",
+    "beforeBuildCommand": "bash scripts/get_latest_exiftool.sh && APPIMAGE_EXTRACT_AND_RUN=1 NO_STRIP=true npm run build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -32,7 +32,7 @@
       "icons/icon.ico"
     ],
     "externalBin": [
-      "bin/exiftool"
+      "bin/media-metadata-cleaner_exiftool"
     ],
     "resources": {
       "bin/exiftool_files": "exiftool_files"
@@ -40,6 +40,26 @@
     "macOS": {
       "files": {
         "MacOS/lib": "bin/lib"
+      }
+    },
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": false,
+        "files": {
+          "/usr/bin/lib": "bin/lib"
+        }
+      },
+      "deb": {
+        "files": {
+          "usr/lib/media-metadata-cleaner_exiftool": "bin/lib"
+        }
+      },
+      "rpm": {
+        "epoch": 0,
+        "files": {
+          "/usr/lib/media-metadata-cleaner_exiftool": "bin/lib"
+        },
+        "release": "1"
       }
     }
   }

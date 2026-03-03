@@ -66,7 +66,7 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
   }
 
   console.log(`origReadCommand: ${filename}`);
-  const origReadCommand = Command.sidecar('bin/exiftool', ['--system:all', filename]);
+  const origReadCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['--system:all', filename]);
   const origReadProcess = (await origReadCommand.execute()) as ChildProcess<string>;
   console.log(`origReadProcess: ${origReadProcess.code}`);
   const origTags = origReadProcess.stdout;
@@ -94,7 +94,7 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
       errors.push(copyMessage);
     }
 
-    const cleanAllCommand = Command.sidecar('bin/exiftool', ['-all:all=', '-overwrite_original', cleanedFilename]);
+    const cleanAllCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['-all:all=', '-overwrite_original', cleanedFilename]);
     const cleanAllProcess = (await cleanAllCommand.execute()) as ChildProcess<string>;
     if (cleanAllProcess.code !== 0) {
       console.error(`Error cleaning file ${filename}: ${cleanAllProcess.stderr.toString()}`);
@@ -105,7 +105,7 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
     }
     console.log(`While cleaning file ${filename}: ${cleanAllProcess.stdout.toString()}`);
 
-    const cleanTimeCommand = Command.sidecar('bin/exiftool', ['-time:all=', '-overwrite_original', cleanedFilename]);
+    const cleanTimeCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['-time:all=', '-overwrite_original', cleanedFilename]);
     const cleanTimeProcess = (await cleanTimeCommand.execute()) as ChildProcess<string>;
     if (cleanTimeProcess.code !== 0) {
       console.error(`Error cleaning file ${filename}: ${cleanTimeProcess.stderr.toString()}`);
@@ -118,7 +118,7 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
 
   }
 
-  const cleanedReadCommand = Command.sidecar('bin/exiftool', ['--system:all', cleanedFilename]);
+  const cleanedReadCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['--system:all', cleanedFilename]);
   const cleanedReadProcess = (await cleanedReadCommand.execute()) as ChildProcess<string>;
   const cleanedTags = cleanedReadProcess.stdout;
   

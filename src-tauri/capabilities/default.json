@@ -13,7 +13,7 @@
       "identifier": "shell:allow-execute",
       "allow": [
         {
-          "name": "bin/exiftool",
+          "name": "bin/media-metadata-cleaner_exiftool",
           "cmd": "sh",
           "args": true,
           "sidecar": true
