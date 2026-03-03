@@ -2,43 +2,83 @@
 
 set -e
 
-base_dir=$(dirname "$0")/..
-work_dir=$(mktemp -d)
+base_dir=$(dirname ${0})/..
 
-echo "getting latest exiftool release..."
-exif_homepage=$(curl -s https://exiftool.org/)
+function linux_mac_setup() {
+    target_triple=$1
+    echo "setting up exiftool for ${target_triple}..."
 
-archive_url=$(echo "$exif_homepage" | grep "Image-ExifTool-.*.tar.gz/download" | sed -E 's/.*"(.*)".*/\1/')
-echo "archive_url (mac and linux): $archive_url"
+    work_dir=$(mktemp -d)
 
-win32_url=$(echo "$exif_homepage" | grep "exiftool-.*_32.zip/download" | sed -E 's/.*"(.*)".*/\1/')
-echo "win32_url (windows): $win32_url"
+    echo "getting latest exiftool release..."
 
-version=$(echo "$archive_url" | sed -E "s|.*Image-ExifTool-([0-9\.]+).tar.gz/download|\1|")
-echo "version: $version"
-echo ${base_dir}/exiftool-version.txt
+    archive_url=$(curl -s https://exiftool.org/ | grep "Image-ExifTool-.*.tar.gz/download" | sed -E 's/.*"(.*)".*/\1/')
+    echo "archive_url: ${archive_url}"
 
-mkdir -p ${base_dir}/src-tauri/bin
+    version=$(echo ${archive_url} | sed -E "s|.*Image-ExifTool-([0-9\.]+).tar.gz/download|\1|")
+    echo "version: ${version}"
+    echo "$version" > ${base_dir}/exiftool-version.txt
 
-echo "processing mac and linux archive..."
-curl -s -o ${work_dir}/exiftool-archive.tgz -L "$archive_url"
-tar -xzf ${work_dir}/exiftool-archive.tgz -C ${work_dir}
-rm -rf ${base_dir}/src-tauri/bin/exiftool ${base_dir}/src-tauri/bin/lib
-rsync -a ${work_dir}/Image-ExifTool-$version/{exiftool,lib} ${base_dir}/src-tauri/bin/
+    mkdir -p ${base_dir}/src-tauri/bin
 
-echo "processing windows zip..."
-curl -s -o ${work_dir}/exiftool-win32.zip -L "$win32_url"
-unzip -qq ${work_dir}/exiftool-win32.zip -d ${work_dir}
+    echo "processing archive..."
+    curl -s -o ${work_dir}/exiftool-archive.tgz -L "${archive_url}"
+    tar -xzf ${work_dir}/exiftool-archive.tgz -C ${work_dir}
+    rm -rf ${base_dir}/src-tauri/bin/exiftool ${base_dir}/src-tauri/bin/lib
+    cp ${work_dir}/Image-ExifTool-$version/exiftool ${base_dir}/src-tauri/bin/exiftool-${target_triple}
+    rsync -a ${work_dir}/Image-ExifTool-$version/lib ${base_dir}/src-tauri/bin/lib
+    mkdir -p ${base_dir}/src-tauri/bin/exiftool_files
+    
+    echo "exiftool for ${target_triple} setup complete"
+}
 
-# zip, sheesh.
-chmod -R 777 ${base_dir}/src-tauri/bin/exiftool_files
-rm -rf ${base_dir}/src-tauri/bin/exiftool.exe ${base_dir}/src-tauri/bin/exiftool_files
-rsync -a ${work_dir}/exiftool-${version}_32/exiftool\(-k\).exe ${base_dir}/src-tauri/bin/exiftool.exe
-rsync -a ${work_dir}/exiftool-${version}_32/exiftool_files ${base_dir}/src-tauri/bin/
+function windows_setup() {
+    target_triple=$1
+    echo "setting up exiftool for ${target_triple}..."
 
-echo "cleaning up..."
-# zip, sheesh.
-chmod -R 777 ${work_dir}
-rm -rf ${work_dir}
+    work_dir=$(mktemp -d)
+
+    echo "getting latest exiftool release..."
+
+    archive_url=$(curl -s https://exiftool.org/ | grep "exiftool-.*_32.zip/download" | sed -E 's/.*"(.*)".*/\1/')
+    echo "archive_url: ${archive_url}"
+
+    version=$(echo ${archive_url} | sed -E "s|.*exiftool-([0-9\.]+)_32.zip/download|\1|")
+    echo "version: ${version}"
+    echo ${version} > ${base_dir}/exiftool-version.txt
+
+    mkdir -p ${base_dir}/src-tauri/bin
+
+    echo "processing archive..."
+    curl -s -o ${work_dir}/exiftool-archive.zip -L "${archive_url}"
+    unzip -qq ${work_dir}/exiftool-archive.zip -d ${work_dir}
+
+    if [ -d ${base_dir}/src-tauri/bin/exiftool_files ]; then
+        chmod -R 777 ${base_dir}/src-tauri/bin/exiftool_files
+    fi
+    rm -rf ${base_dir}/src-tauri/bin/exiftool.exe ${base_dir}/src-tauri/bin/exiftool_files
+
+    cp ${work_dir}/exiftool-${version}_32/exiftool\(-k\).exe ${base_dir}/src-tauri/bin/exiftool-${target_triple}.exe
+    rsync -a ${work_dir}/exiftool-${version}_32/exiftool_files ${base_dir}/src-tauri/bin/
+    mkdir -p ${base_dir}/src-tauri/bin/lib
+
+    echo "exiftool for ${target_triple} setup complete"
+}
+
+
+target_triple=$(rustc --print host-tuple)
+platfrom=""
+case ${target_triple} in
+    *darwin* | *linux*)
+        linux_mac_setup ${target_triple}
+        ;;
+    *windows*)
+        windows_setup ${target_triple}
+        ;;
+    *)
+        echo "unknown platform: ${target_triple}"
+        exit 1
+        ;;
+esac
 
 echo "done"
