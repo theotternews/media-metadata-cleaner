@@ -1,19 +1,19 @@
 # media-metadata-cleaner
 
-Desktop app that strips metadata from images (EXIF, XMP, etc.) using ExifTool. Pick files, review changes, then save cleaned copies. HEIC is re-encoded as JPEG.
+Desktop app that strips metadata from images (EXIF, XMP, etc.) using [exiftool](https://exiftool.org). HEIC is re-encoded as JPEG at 100% quality.
 
 ## Installation
 
-Download the latest release for your platform from **[Releases](https://codeberg.org/otternews/media-metadata-cleaner/releases)**. Install or run the bundled app as usual for your OS.
+Download the latest release for your platform from **[Releases](https://codeberg.org/otternews/media-metadata-cleaner/releases)**. 
 
 ## Usage
 
 1. Click the button to choose image files (e.g. JPEG, PNG, HEIC). Multiple selection is allowed.
-2. Wait for processing. Each file gets an accordion row: **Original** vs **Cleaned** preview, metadata tags, and any errors or warnings.
-3. Green rows succeeded; yellow = warnings; red = errors. Fix or skip failed items.
+2. Wait for processing. Each file gets an row in the results: **Original** vs **Cleaned** image and tags, as well as any errors or warnings.
+3. Green rows succeeded; yellow had warnings; red had errors. 
 4. Cleaned files are written next to the originals with a `-cleaned` suffix (e.g. `photo.jpg` → `photo-cleaned.jpg`). Originals are never overwritten.
 
-**Notes:** Use correct file extensions (e.g. don’t name a JPEG `.png`). HEIC output is JPEG at 100% quality.
+**Notes:** Use correct file extensions (e.g. don’t name a JPEG `.png`). 
 
 ## Development
 

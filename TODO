@@ -1,10 +1,17 @@
 * TODO
-** Verify -all:all= really cleans the stuff we want
 ** System vs packaged libs on linux (version mismatch warning)
 ** Less saturated accordian title colors
-** Quit key
 ** Strip distributable on linux
+** build actions on codeberg
+** video display
+** warnings and errors in error box when file exists
 * DONE
 ** Test on mac - works
 ** Test on windows - works
 ** Fix empty argument to exiftool
+** README as docs
+** Quit key
+** Verify -all:all= really cleans the stuff we want
+*** seems like it doesn't? exiftool -G0 -a -U -ee
+*** but use a two pass soln with the second removing time tags. as good as we can get
+** remove system tags

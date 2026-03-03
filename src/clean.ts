@@ -66,7 +66,7 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
   }
 
   console.log(`origReadCommand: ${filename}`);
-  const origReadCommand = Command.sidecar('bin/exiftool', [filename]);
+  const origReadCommand = Command.sidecar('bin/exiftool', ['--system:all', filename]);
   const origReadProcess = (await origReadCommand.execute()) as ChildProcess<string>;
   console.log(`origReadProcess: ${origReadProcess.code}`);
   const origTags = origReadProcess.stdout;
@@ -94,19 +94,31 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
       errors.push(copyMessage);
     }
 
-    const cleanCommand = Command.sidecar('bin/exiftool', ['-all:all=', '-overwrite_original', cleanedFilename]);
-    const cleanProcess = (await cleanCommand.execute()) as ChildProcess<string>;
-    if (cleanProcess.code !== 0) {
-      console.error(`Error cleaning file ${cleanedFilename}: ${cleanProcess.stderr.toString()}`);
-      errors.push(cleanProcess.stderr.toString());
-    } else if (cleanProcess.stderr.length > 0) {
-      console.warn(`Warning cleaning file ${cleanedFilename}: ${cleanProcess.stderr.toString()}`);
-      warnings.push(cleanProcess.stderr.toString());
+    const cleanAllCommand = Command.sidecar('bin/exiftool', ['-all:all=', '-overwrite_original', cleanedFilename]);
+    const cleanAllProcess = (await cleanAllCommand.execute()) as ChildProcess<string>;
+    if (cleanAllProcess.code !== 0) {
+      console.error(`Error cleaning file ${filename}: ${cleanAllProcess.stderr.toString()}`);
+      errors.push(cleanAllProcess.stderr.toString());
+    } else if (cleanAllProcess.stderr.length > 0) {
+      console.warn(`Warning cleaning file ${cleanedFilename}: ${cleanAllProcess.stderr.toString()}`);
+      warnings.push(cleanAllProcess.stderr.toString());
     }
-    console.log(`While cleaning file ${cleanedFilename}: ${cleanProcess.stdout.toString()}`);
+    console.log(`While cleaning file ${filename}: ${cleanAllProcess.stdout.toString()}`);
+
+    const cleanTimeCommand = Command.sidecar('bin/exiftool', ['-time:all=', '-overwrite_original', cleanedFilename]);
+    const cleanTimeProcess = (await cleanTimeCommand.execute()) as ChildProcess<string>;
+    if (cleanTimeProcess.code !== 0) {
+      console.error(`Error cleaning file ${filename}: ${cleanTimeProcess.stderr.toString()}`);
+      errors.push(cleanTimeProcess.stderr.toString());
+    } else if (cleanTimeProcess.stderr.length > 0) {
+      console.warn(`Warning cleaning file ${cleanedFilename}: ${cleanTimeProcess.stderr.toString()}`);
+      warnings.push(cleanTimeProcess.stderr.toString());
+    }
+    console.log(`While cleaning file ${cleanedFilename}: ${cleanTimeProcess.stdout.toString()}`);
+
   }
 
-  const cleanedReadCommand = Command.sidecar('bin/exiftool', [cleanedFilename]);
+  const cleanedReadCommand = Command.sidecar('bin/exiftool', ['--system:all', cleanedFilename]);
   const cleanedReadProcess = (await cleanedReadCommand.execute()) as ChildProcess<string>;
   const cleanedTags = cleanedReadProcess.stdout;
   
