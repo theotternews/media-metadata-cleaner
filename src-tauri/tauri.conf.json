@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "sh scripts/get_latest_exiftool.sh && npm run build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -35,8 +35,12 @@
       "bin/exiftool"
     ],
     "resources": {
-      "bin/exiftool_files": "exiftool_files",
-      "bin/lib": "lib"
+      "bin/exiftool_files": "exiftool_files"
+    },
+    "macOS": {
+      "files": {
+        "MacOS/lib": "bin/lib"
+      }
     }
   }
 }
