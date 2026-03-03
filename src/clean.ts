@@ -121,12 +121,13 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
   const cleanedReadCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['--system:all', cleanedFilename]);
   const cleanedReadProcess = (await cleanedReadCommand.execute()) as ChildProcess<string>;
   const cleanedTags = cleanedReadProcess.stdout;
-  
+
   return new CleanRaw(origTags, cleanedFilename, cleanedTags, errors, warnings);
 }
 
 export async function processFiles(
   filenames: string[],
+  loadImageData: boolean
   onProgress?: (current: number, total: number) => void
 ): Promise<CleanedResult[]> {
   const total = filenames.length;
@@ -149,16 +150,25 @@ export async function processFiles(
       continue;
     }
 
-    const [readCode, readMessage, origImageData] = await invoke<[number, string, string]>('read_file', { path: filename });
-    if (readCode !== 0) {
-      console.error(`Error reading file ${filename}: ${readMessage}`);
-    }
-    const origMimeType = MimeTypes.lookup(filename) as string;
+    let origImageData = '';
+    let cleanedImageData = '';
+    if (loadImageData) {
+      const [readCode, readMessage, data] = await invoke<[number, string, string]>('read_file', { path: filename });
+      if (readCode !== 0) {
+        console.error(`Error reading file ${filename}: ${readMessage}`);
+      } else {
+        origImageData = data;
+      }
 
-    const [cleanedReadCode, cleanedReadMessage, cleanedImageData] = await invoke<[number, string, string]>('read_file', { path: cleanRaw.cleanedFilename });
-    if (cleanedReadCode !== 0) {
-      console.error(`Error reading file ${cleanRaw.cleanedFilename}: ${cleanedReadMessage}`);
+      const [cleanedReadCode, cleanedReadMessage, cleanedData] = await invoke<[number, string, string]>('read_file', { path: cleanRaw.cleanedFilename });
+      if (cleanedReadCode !== 0) {
+        console.error(`Error reading file ${cleanRaw.cleanedFilename}: ${cleanedReadMessage}`);
+      } else {
+        cleanedImageData = cleanedData;
+      }
     }
+
+    const origMimeType = MimeTypes.lookup(filename) as string;
     const cleanedMimeType = MimeTypes.lookup(cleanRaw.cleanedFilename) as string;
 
     results.push(
