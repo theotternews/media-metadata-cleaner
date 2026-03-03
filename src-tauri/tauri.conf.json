@@ -30,6 +30,13 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "externalBin": [
+      "bin/exiftool"
+    ],
+    "resources": {
+      "bin/exiftool_files": "exiftool_files",
+      "bin/lib": "lib"
+    }
   }
 }
