@@ -1,4 +1,5 @@
 import { open } from '@tauri-apps/plugin-dialog';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { type ReactNode, useState, useCallback } from 'react';
 import Accordion from 'react-bootstrap/Accordion';
 import type { CleanedResult } from './types';
@@ -6,20 +7,29 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import "./App.css";
 import { processFiles } from './clean';
 
+const REPO_URL = 'https://github.com/theotternews/media-metadata-cleaner';
+
 const INLINE_PRE_CLASS = 'd-inline mb-0 p-0 font-monospace border-0 bg-transparent';
 
 type AccordionKey = string | string[] | undefined;
 const toAccordionKey = (k: string | string[] | null | undefined): AccordionKey =>
   k === null || k === undefined ? undefined : k;
 
+function NotesWithLinks() {
+  const openInBrowser = (url: string) => () => { openUrl(url); };
+  return (
+    <>
+      <button type="button" className="btn btn-link p-0 text-primary text-decoration-underline" onClick={openInBrowser(`${REPO_URL}/issues`)}>Report a problem</button>
+      , or view the{' '}
+      <button type="button" className="btn btn-link p-0 text-primary text-decoration-underline" onClick={openInBrowser(REPO_URL)}>source code</button>.
+    </>
+  );
+}
+
 const NOTES: ReactNode[] = [
   'This tool will do weird things if the image filename has the wrong extension (e.g., a JPEG named as \'.png\').',
   'HEIC images are re-encoded as JPEG at 100% quality.',
-  <>
-    <a target="_blank" rel="noopener noreferrer" href="https://codeberg.org/otternews/media-metadata-cleaner/issues">Report a problem</a>
-    , or view the{' '}
-    <a target="_blank" rel="noopener noreferrer" href="https://codeberg.org/otternews/media-metadata-cleaner">source code</a>.
-  </>,
+  <NotesWithLinks key="notes-links" />,
 ];
 
 /** Wraps mime types (e.g. image/jpeg) and filenames (after " on ") in <pre> for fixed-width styling. */
