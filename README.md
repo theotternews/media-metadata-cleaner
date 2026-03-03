@@ -4,23 +4,23 @@ Desktop app that strips metadata from images (EXIF, XMP, etc.) using [exiftool](
 
 ## Installation
 
-Download the latest release for your platform from **[Releases](https://codeberg.org/otternews/media-metadata-cleaner/releases)**. 
+Download the latest release for your platform from **[Releases](https://github.com/theotternews/media-metadata-cleaner/releases)**.
 
 ## Usage
 
 1. Click the button to choose image files (e.g. JPEG, PNG, HEIC). Multiple selection is allowed.
 2. Wait for processing. Each file gets an row in the results: **Original** vs **Cleaned** image and tags, as well as any errors or warnings.
-3. Green rows succeeded; yellow had warnings; red had errors. 
+3. Green rows succeeded; yellow had warnings; red had errors.
 4. Cleaned files are written next to the originals with a `-cleaned` suffix (e.g. `photo.jpg` → `photo-cleaned.jpg`). Originals are never overwritten.
 
-**Notes:** Use correct file extensions (e.g. don’t name a JPEG `.png`). 
+**Notes:** Use correct file extensions (e.g. don’t name a JPEG `.png`).
 
 ## Development
 
 **Prerequisites:** [Node.js](https://nodejs.org/) (LTS), [Rust](https://rustup.rs/), [Tauri system deps](https://v2.tauri.app/start/prerequisites/) for your OS.
 
 ```bash
-git clone https://codeberg.org/otternews/media-metadata-cleaner.git
+git clone https://github.com/theotternews/media-metadata-cleaner.git
 cd media-metadata-cleaner
 npm install
 ```

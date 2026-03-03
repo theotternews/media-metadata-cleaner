@@ -5,7 +5,6 @@ use tauri_plugin_opener::OpenerExt;
 
 #[tauri::command]
 fn read_file(path: &str) -> (i32, String, String) {
-    println!("read_file: {}", path);
     match fs::read(path) {
         Ok(data) => (
             0,
@@ -18,7 +17,6 @@ fn read_file(path: &str) -> (i32, String, String) {
 
 #[tauri::command]
 fn write_file(path: &str, data: &[u8]) -> (i32, String) {
-    println!("write_file: {} -> {}", path, data.len());
     match fs::write(path, data) {
         Ok(()) => (0, String::new()),
         Err(e) => (1, e.to_string()),
@@ -27,7 +25,6 @@ fn write_file(path: &str, data: &[u8]) -> (i32, String) {
 
 #[tauri::command]
 fn copy_file(src: &str, dst: &str) -> (i32, String) {
-    println!("copy_file: {} -> {}", src, dst);
     match fs::copy(src, dst) {
         Ok(bytes) => (0, format!("Copied {} bytes", bytes)),
         Err(e) => (1, e.to_string()),
