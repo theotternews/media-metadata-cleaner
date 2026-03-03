@@ -1,3 +1,4 @@
+# -*- mode: org; -*-
 * TODO
 ** System vs packaged libs on linux (version mismatch warning)
 ** Less saturated accordian title colors
@@ -14,4 +15,4 @@
 ** Verify -all:all= really cleans the stuff we want
 *** seems like it doesn't? exiftool -G0 -a -U -ee
 *** but use a two pass soln with the second removing time tags. as good as we can get
-** remove system tags
+** remove system group tags
