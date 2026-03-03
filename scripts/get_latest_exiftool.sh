@@ -9,6 +9,11 @@ base_dir=$(dirname ${0})/..
 
 function linux_mac_setup() {
     target_triple=$1
+    # hack to override target triple on mac when building x86_64-apple-darwin
+    if [[ ${TARGET} == *"x86_64-apple-darwin"* ]]; then
+        target_triple="x86_64-apple-darwin"
+    fi
+
     echo "setting up exiftool for ${target_triple}..."
 
     work_dir=$(mktemp -d)
