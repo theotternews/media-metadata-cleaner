@@ -15,17 +15,7 @@
         {
           "name": "bin/exiftool",
           "cmd": "sh",
-          "args": [
-            {
-              "validator": "(-all:all=|\\S+)"
-            },
-            {
-              "validator": "\\S*"
-            },
-            {
-              "validator": "\\S*"
-            }
-          ],
+          "args": true,
           "sidecar": true
         }
       ]

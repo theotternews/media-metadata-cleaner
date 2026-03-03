@@ -1,9 +1,10 @@
 * TODO
-** Fix empty argument to exiftool
 ** Verify -all:all= really cleans the stuff we want
-** Test on mac
 ** System vs packaged libs on linux (version mismatch warning)
 ** Less saturated accordian title colors
 ** Quit key
 ** Strip distributable on linux
 * DONE
+** Test on mac - works
+** Test on windows - works
+** Fix empty argument to exiftool

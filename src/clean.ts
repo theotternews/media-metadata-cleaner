@@ -66,7 +66,7 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
   }
 
   console.log(`origReadCommand: ${filename}`);
-  const origReadCommand = Command.sidecar('bin/exiftool', [filename, '', '']);
+  const origReadCommand = Command.sidecar('bin/exiftool', [filename]);
   const origReadProcess = (await origReadCommand.execute()) as ChildProcess<string>;
   console.log(`origReadProcess: ${origReadProcess.code}`);
   const origTags = origReadProcess.stdout;
@@ -106,7 +106,7 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
     console.log(`While cleaning file ${cleanedFilename}: ${cleanProcess.stdout.toString()}`);
   }
 
-  const cleanedReadCommand = Command.sidecar('bin/exiftool', [cleanedFilename, '', '']);
+  const cleanedReadCommand = Command.sidecar('bin/exiftool', [cleanedFilename]);
   const cleanedReadProcess = (await cleanedReadCommand.execute()) as ChildProcess<string>;
   const cleanedTags = cleanedReadProcess.stdout;
   
