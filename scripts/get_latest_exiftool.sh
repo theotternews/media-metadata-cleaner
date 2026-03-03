@@ -26,9 +26,11 @@ function linux_mac_setup() {
     tar -xzf ${work_dir}/exiftool-archive.tgz -C ${work_dir}
     rm -rf ${base_dir}/src-tauri/bin/exiftool ${base_dir}/src-tauri/bin/lib
     cp ${work_dir}/Image-ExifTool-$version/exiftool ${base_dir}/src-tauri/bin/exiftool-${target_triple}
-    rsync -a ${work_dir}/Image-ExifTool-$version/lib ${base_dir}/src-tauri/bin/lib
+
+    mkdir -p ${base_dir}/src-tauri/bin/lib
+    rsync -a ${work_dir}/Image-ExifTool-$version/lib/* ${base_dir}/src-tauri/bin/lib/
     mkdir -p ${base_dir}/src-tauri/bin/exiftool_files
-    
+
     echo "exiftool for ${target_triple} setup complete"
 }
 
@@ -60,7 +62,6 @@ function windows_setup() {
 
     cp ${work_dir}/exiftool-${version}_32/exiftool\(-k\).exe ${base_dir}/src-tauri/bin/exiftool-${target_triple}.exe
     rsync -a ${work_dir}/exiftool-${version}_32/exiftool_files ${base_dir}/src-tauri/bin/
-    mkdir -p ${base_dir}/src-tauri/bin/lib
 
     echo "exiftool for ${target_triple} setup complete"
 }
