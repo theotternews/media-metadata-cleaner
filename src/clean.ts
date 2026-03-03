@@ -125,9 +125,14 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
   return new CleanRaw(origTags, cleanedFilename, cleanedTags, errors, warnings);
 }
 
-export async function processFiles(filenames: string[]): Promise<CleanedResult[]> {
+export async function processFiles(
+  filenames: string[],
+  onProgress?: (current: number, total: number) => void
+): Promise<CleanedResult[]> {
+  const total = filenames.length;
   const results: CleanedResult[] = [];
-  for (const filename of filenames) {
+  for (let i = 0; i < filenames.length; i++) {
+    const filename = filenames[i];
     let cleanRaw: CleanRaw;
     try {
       cleanRaw = await cleanMetadata(filename);
@@ -140,6 +145,7 @@ export async function processFiles(filenames: string[]): Promise<CleanedResult[]
           []
         )
       );
+      onProgress?.(i + 1, total);
       continue;
     }
 
@@ -163,6 +169,7 @@ export async function processFiles(filenames: string[]): Promise<CleanedResult[]
         cleanRaw.warnings
       )
     );
+    onProgress?.(i + 1, total);
   }
   return results;
 }

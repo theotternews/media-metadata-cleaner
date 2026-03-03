@@ -1,7 +1,6 @@
 # -*- mode: org; -*-
 * TODO
 ** icon
-** memory issues
 ** diff the tags for display - https://github.com/rtfpessoa/diff2html?tab=readme-ov-file
 ** Less saturated accordian title colors
 ** video display
@@ -24,3 +23,5 @@
 *** deb doesn't take libs with it :(
 *** export before build for app image
 ** build actions on github
+** memory issues - added checkbox option to load the media data
+** progress bar
