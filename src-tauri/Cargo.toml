@@ -1,6 +1,6 @@
 [package]
 name = "media-metadata-cleaner"
-version = "0.1.0"
+version = "0.1.0-rc1"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
@@ -26,4 +26,3 @@ tauri-plugin-shell = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-os = "2"
 tauri-plugin-opener = "2"
-
