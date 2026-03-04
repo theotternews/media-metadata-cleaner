@@ -127,7 +127,7 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
 
 export async function processFiles(
   filenames: string[],
-  loadImageData: boolean
+  loadImageData: boolean,
   onProgress?: (current: number, total: number) => void
 ): Promise<CleanedResult[]> {
   const total = filenames.length;

@@ -124,11 +124,9 @@ function App() {
         return;
     }
     setProgress({ current: 0, total: files.length });
-    const cleanedResults = await processFiles(files, (current, total) => setProgress({ current, total }));
-    setProgress({ current: 0, total: 0 });
-
     const loadImageData = loadMediaRef.current?.checked ?? true;
-    const cleanedResults = await processFiles(files, loadImageData);
+    const cleanedResults = await processFiles(files, loadImageData, (current, total) => setProgress({ current, total }));
+    setProgress({ current: 0, total: 0 });
 
     console.log(cleanedResults);
     setCleanedResults(cleanedResults);
