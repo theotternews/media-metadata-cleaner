@@ -107,6 +107,7 @@ function App() {
   const [cleanedResults, setCleanedResults] = useState<CleanedResult[]>([]);
   const [notesActiveKey, setNotesActiveKey] = useState<AccordionKey>('0');
   const [resultsActiveKey, setResultsActiveKey] = useState<AccordionKey>(undefined);
+  const [progress, setProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
   const loadMediaRef = useRef<HTMLInputElement>(null);
 
   const onChooseFiles = useCallback(async () => {
@@ -122,8 +123,13 @@ function App() {
     if (files == null) {
         return;
     }
+    setProgress({ current: 0, total: files.length });
+    const cleanedResults = await processFiles(files, (current, total) => setProgress({ current, total }));
+    setProgress({ current: 0, total: 0 });
+
     const loadImageData = loadMediaRef.current?.checked ?? true;
     const cleanedResults = await processFiles(files, loadImageData);
+
     console.log(cleanedResults);
     setCleanedResults(cleanedResults);
   }, []);
@@ -158,6 +164,19 @@ function App() {
           </label>
         </div>
       </div>
+
+      {progress.total > 0 && (
+        <div className="mt-3">
+          <div className="progress" role="progressbar" aria-valuenow={progress.current} aria-valuemin={0} aria-valuemax={progress.total}>
+            <div
+              className="progress-bar"
+              style={{ width: `${progress.total ? (100 * progress.current) / progress.total : 0}%` }}
+            >
+              {progress.current} / {progress.total}
+            </div>
+          </div>
+        </div>
+      )}
 
       {cleanedResults.length > 0 && (
         <div>

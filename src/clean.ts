@@ -121,13 +121,19 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
   const cleanedReadCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['--system:all', cleanedFilename]);
   const cleanedReadProcess = (await cleanedReadCommand.execute()) as ChildProcess<string>;
   const cleanedTags = cleanedReadProcess.stdout;
-  
+
   return new CleanRaw(origTags, cleanedFilename, cleanedTags, errors, warnings);
 }
 
-export async function processFiles(filenames: string[], loadImageData: boolean): Promise<CleanedResult[]> {
+export async function processFiles(
+  filenames: string[],
+  loadImageData: boolean
+  onProgress?: (current: number, total: number) => void
+): Promise<CleanedResult[]> {
+  const total = filenames.length;
   const results: CleanedResult[] = [];
-  for (const filename of filenames) {
+  for (let i = 0; i < filenames.length; i++) {
+    const filename = filenames[i];
     let cleanRaw: CleanRaw;
     try {
       cleanRaw = await cleanMetadata(filename);
@@ -140,6 +146,7 @@ export async function processFiles(filenames: string[], loadImageData: boolean):
           []
         )
       );
+      onProgress?.(i + 1, total);
       continue;
     }
 
@@ -172,6 +179,7 @@ export async function processFiles(filenames: string[], loadImageData: boolean):
         cleanRaw.warnings
       )
     );
+    onProgress?.(i + 1, total);
   }
   return results;
 }

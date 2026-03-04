@@ -1,7 +1,6 @@
 # -*- mode: org; -*-
 * TODO
 ** icon
-** progress bar
 ** heic
 ** diff the tags for display - https://github.com/rtfpessoa/diff2html?tab=readme-ov-file
 ** Less saturated accordian title colors
@@ -25,4 +24,5 @@
 *** deb doesn't take libs with it :(
 *** export before build for app image
 ** build actions on github
-** memory issues -- check box for showing images
+** memory issues - added checkbox option to load the media data
+** progress bar
