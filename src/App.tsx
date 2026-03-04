@@ -87,16 +87,18 @@ function ResultAccordionItem({ result, index }: { result: CleanedResult; index: 
         <div>
           {makeCard('Error(s)', result.errors.map(styleMessage), 'text-danger')}
           {makeCard('Warning(s)', result.warnings.map(styleMessage), 'text-warning')}
-          {hasImageData && (
-            <div className="grid-container">
-              <div className="grid-item"><h6 className="my-0">Original</h6></div>
-              <div className="grid-item"><h6 className="my-0">Cleaned</h6></div>
-              <div className="grid-item">{result.origImage.imageData ? <img src={`data:${result.origImage.mimeType};base64,${result.origImage.imageData}`} alt="Original" /> : null}</div>
-              <div className="grid-item">{result.cleanedImage.imageData ? <img src={`data:${result.cleanedImage.mimeType};base64,${result.cleanedImage.imageData}`} alt="Cleaned" /> : null}</div>
-              <div className="grid-item"><pre>{result.origImage.tags}</pre></div>
-              <div className="grid-item"><pre>{result.cleanedImage.tags}</pre></div>
-            </div>
-          )}
+          <div className="grid-container">
+            <div className="grid-item"><h6 className="my-0">Original</h6></div>
+            <div className="grid-item"><h6 className="my-0">Cleaned</h6></div>
+            {hasImageData && (
+              <>
+                <div className="grid-item">{result.origImage.imageData ? <img src={`data:${result.origImage.mimeType};base64,${result.origImage.imageData}`} alt="Original" /> : null}</div>
+                <div className="grid-item">{result.cleanedImage.imageData ? <img src={`data:${result.cleanedImage.mimeType};base64,${result.cleanedImage.imageData}`} alt="Cleaned" /> : null}</div>
+              </>
+            )}
+            <div className="grid-item"><pre>{result.origImage.tags}</pre></div>
+            <div className="grid-item"><pre>{result.cleanedImage.tags}</pre></div>
+          </div>
         </div>
       </Accordion.Body>
     </Accordion.Item>
@@ -124,11 +126,9 @@ function App() {
         return;
     }
     setProgress({ current: 0, total: files.length });
-    const cleanedResults = await processFiles(files, (current, total) => setProgress({ current, total }));
-    setProgress({ current: 0, total: 0 });
-
     const loadImageData = loadMediaRef.current?.checked ?? true;
-    const cleanedResults = await processFiles(files, loadImageData);
+    const cleanedResults = await processFiles(files, loadImageData, (current, total) => setProgress({ current, total }));
+    setProgress({ current: 0, total: 0 });
 
     console.log(cleanedResults);
     setCleanedResults(cleanedResults);
@@ -171,10 +171,9 @@ function App() {
             <div
               className="progress-bar"
               style={{ width: `${progress.total ? (100 * progress.current) / progress.total : 0}%` }}
-            >
-              {progress.current} / {progress.total}
-            </div>
+            />
           </div>
+          <div className="text-center mt-1">{progress.current} / {progress.total}</div>
         </div>
       )}
 
