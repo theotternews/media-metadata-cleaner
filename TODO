@@ -1,7 +1,7 @@
 # -*- mode: org; -*-
 * TODO
 ** icon
-** heic
+** option to rename
 ** diff the tags for display - https://github.com/rtfpessoa/diff2html?tab=readme-ov-file
 ** Less saturated accordian title colors
 ** video display
@@ -26,3 +26,4 @@
 ** build actions on github
 ** memory issues - added checkbox option to load the media data
 ** progress bar
+** heic and some other formats we can't display, but can convert

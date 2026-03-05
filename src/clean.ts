@@ -3,19 +3,20 @@ import { platform } from '@tauri-apps/plugin-os';
 import { ChildProcess, Command } from '@tauri-apps/plugin-shell';
 import { CleanRaw, CleanedResult, ImageInfo, MimeTypes } from './types';
 
-// const convert = require('heic-convert') as (opts: {
-//   buffer: Buffer;
-//   format: string;
-//   quality: number;
-// }) => Promise<Buffer>;
-
-// const keepTags = [
+// const keepTags: readonly string[] = [
 //   'ColorSpace',
 //   'Orientation',
 //   'ResolutionUnit',
 //   'XResolution',
 //   'YResolution',
 // ] as const;
+
+const displayMimeTypes: readonly string[] = [
+  'image/gif',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+] as const;
 
 function formatError(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
@@ -29,32 +30,6 @@ function basename(path: string): string {
   }
 }
 
-// async function heicToJpeg(filename: string, origTags: ExifTags): Promise<string> {
-//   const stem = filename.slice(0, filename.lastIndexOf('.'));
-//   const inputBuffer = await fs.readFile(filename);
-//   const outputBuffer = await convert({
-//     buffer: inputBuffer,
-//     format: 'JPEG',
-//     quality: 1,
-//   });
-
-//   // TODO
-//   const targetFilename = `${stem}-cleaned.jpg`;
-//   await fs.writeFile(targetFilename, outputBuffer);
-
-//   const keysMap = (Object.keys(origTags) as string[]).reduce<Record<string, string | null>>(
-//     (acc, key) => ({
-//       ...acc,
-//       [key]: (keepTags as readonly string[]).includes(key) ? (origTags[key] as string) : null,
-//     }),
-//     {}
-//   );
-//   await exiftool.write(targetFilename, keysMap);
-
-//   // return targetFilename;
-//   return "";
-// }
-
 async function cleanMetadata(filename: string): Promise<CleanRaw> {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -62,7 +37,7 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
 
   const mimeType = MimeTypes.lookup(filename);
   if (!mimeType) {
-    throw new Error(`Invalid mime type for ${filename}. Only images and videos are supported.`);
+    throw new Error(`Invalid mime type for ${filename}. Only images and videos that exiftool can writeare supported.`);
   }
 
   console.log(`origReadCommand: ${filename}`);
@@ -72,51 +47,42 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
   const origTags = origReadProcess.stdout;
   console.log(`origTags: ${JSON.stringify(origTags)}`);
 
-  let cleanedFilename: string;
-  if (mimeType === 'image/heic') {
-    // cleanedFilename = await heicToJpeg(filename, origTags);
-    cleanedFilename = "";
-    errors.push("HEIC conversion not supported yet.");
-    warnings.push("HEIC conversion not supported yet.");
-  } else {
-    const lastDot = filename.lastIndexOf('.');
-    const stem = filename.slice(0, lastDot);
-    const ext = filename.slice(lastDot + 1);
-    cleanedFilename = `${stem}-cleaned.${ext}`;
+  const lastDot = filename.lastIndexOf('.');
+  const stem = filename.slice(0, lastDot);
+  const ext = filename.slice(lastDot + 1);
+  const cleanedFilename = `${stem}-cleaned.${ext}`;
 
-    console.log(`copyCommand: ${filename} ${cleanedFilename}`);
-    const [copyCode, copyMessage] = await invoke<[number, string]>('copy_file', {
-      src: filename,
-      dst: cleanedFilename,
-    });
-    console.log(`copyCode: ${copyCode}, copyMessage: ${copyMessage}`);
-    if (copyCode !== 0) {
-      errors.push(copyMessage);
-    }
-
-    const cleanAllCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['-all:all=', '-overwrite_original', cleanedFilename]);
-    const cleanAllProcess = (await cleanAllCommand.execute()) as ChildProcess<string>;
-    if (cleanAllProcess.code !== 0) {
-      console.error(`Error cleaning file ${filename}: ${cleanAllProcess.stderr.toString()}`);
-      errors.push(cleanAllProcess.stderr.toString());
-    } else if (cleanAllProcess.stderr.length > 0) {
-      console.warn(`Warning cleaning file ${cleanedFilename}: ${cleanAllProcess.stderr.toString()}`);
-      warnings.push(cleanAllProcess.stderr.toString());
-    }
-    console.log(`While cleaning file ${filename}: ${cleanAllProcess.stdout.toString()}`);
-
-    const cleanTimeCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['-time:all=', '-overwrite_original', cleanedFilename]);
-    const cleanTimeProcess = (await cleanTimeCommand.execute()) as ChildProcess<string>;
-    if (cleanTimeProcess.code !== 0) {
-      console.error(`Error cleaning file ${filename}: ${cleanTimeProcess.stderr.toString()}`);
-      errors.push(cleanTimeProcess.stderr.toString());
-    } else if (cleanTimeProcess.stderr.length > 0) {
-      console.warn(`Warning cleaning file ${cleanedFilename}: ${cleanTimeProcess.stderr.toString()}`);
-      warnings.push(cleanTimeProcess.stderr.toString());
-    }
-    console.log(`While cleaning file ${cleanedFilename}: ${cleanTimeProcess.stdout.toString()}`);
-
+  console.log(`copyCommand: ${filename} ${cleanedFilename}`);
+  const [copyCode, copyMessage] = await invoke<[number, string]>('copy_file', {
+    src: filename,
+    dst: cleanedFilename,
+  });
+  console.log(`copyCode: ${copyCode}, copyMessage: ${copyMessage}`);
+  if (copyCode !== 0) {
+    errors.push(copyMessage);
   }
+
+  const cleanAllCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['-all:all=', '-overwrite_original', cleanedFilename]);
+  const cleanAllProcess = (await cleanAllCommand.execute()) as ChildProcess<string>;
+  if (cleanAllProcess.code !== 0) {
+    console.error(`Error cleaning file ${filename}: ${cleanAllProcess.stderr.toString()}`);
+    errors.push(cleanAllProcess.stderr.toString());
+  } else if (cleanAllProcess.stderr.length > 0) {
+    console.warn(`Warning cleaning file ${cleanedFilename}: ${cleanAllProcess.stderr.toString()}`);
+    warnings.push(cleanAllProcess.stderr.toString());
+  }
+  console.log(`While cleaning file ${filename}: ${cleanAllProcess.stdout.toString()}`);
+
+  const cleanTimeCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['-time:all=', '-overwrite_original', cleanedFilename]);
+  const cleanTimeProcess = (await cleanTimeCommand.execute()) as ChildProcess<string>;
+  if (cleanTimeProcess.code !== 0) {
+    console.error(`Error cleaning file ${filename}: ${cleanTimeProcess.stderr.toString()}`);
+    errors.push(cleanTimeProcess.stderr.toString());
+  } else if (cleanTimeProcess.stderr.length > 0) {
+    console.warn(`Warning cleaning file ${cleanedFilename}: ${cleanTimeProcess.stderr.toString()}`);
+    warnings.push(cleanTimeProcess.stderr.toString());
+  }
+  console.log(`While cleaning file ${cleanedFilename}: ${cleanTimeProcess.stdout.toString()}`);
 
   const cleanedReadCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['--system:all', cleanedFilename]);
   const cleanedReadProcess = (await cleanedReadCommand.execute()) as ChildProcess<string>;
@@ -135,6 +101,8 @@ export async function processFiles(
   for (let i = 0; i < filenames.length; i++) {
     const filename = filenames[i];
     let cleanRaw: CleanRaw;
+    let info = [];
+
     try {
       cleanRaw = await cleanMetadata(filename);
     } catch (err) {
@@ -152,31 +120,36 @@ export async function processFiles(
 
     let origImageData = '';
     let cleanedImageData = '';
-    if (loadImageData) {
-      const [readCode, readMessage, data] = await invoke<[number, string, string]>('read_file', { path: filename });
-      if (readCode !== 0) {
-        console.error(`Error reading file ${filename}: ${readMessage}`);
-      } else {
-        origImageData = data;
-      }
-
-      const [cleanedReadCode, cleanedReadMessage, cleanedData] = await invoke<[number, string, string]>('read_file', { path: cleanRaw.cleanedFilename });
-      if (cleanedReadCode !== 0) {
-        console.error(`Error reading file ${cleanRaw.cleanedFilename}: ${cleanedReadMessage}`);
-      } else {
-        cleanedImageData = cleanedData;
-      }
-    }
-
     const origMimeType = MimeTypes.lookup(filename) as string;
     const cleanedMimeType = MimeTypes.lookup(cleanRaw.cleanedFilename) as string;
+
+    if (loadImageData) {
+      if (displayMimeTypes.includes(origMimeType)) {
+        const [readCode, readMessage, data] = await invoke<[number, string, string]>('read_file', { path: filename });
+        if (readCode !== 0) {
+          console.error(`Error reading file ${filename}: ${readMessage}`);
+        } else {
+          origImageData = data;
+        }
+
+        const [cleanedReadCode, cleanedReadMessage, cleanedData] = await invoke<[number, string, string]>('read_file', { path: cleanRaw.cleanedFilename });
+        if (cleanedReadCode !== 0) {
+          console.error(`Error reading file ${cleanRaw.cleanedFilename}: ${cleanedReadMessage}`);
+        } else {
+          cleanedImageData = cleanedData;
+        }
+      } else {
+        info.push(`Not displaying ${basename(filename)} because media type ${origMimeType} can not be displayed.`);
+      }
+    }
 
     results.push(
       new CleanedResult(
         new ImageInfo(basename(filename), origImageData, origMimeType, cleanRaw.origTags),
         new ImageInfo(basename(cleanRaw.cleanedFilename), cleanedImageData, cleanedMimeType, cleanRaw.cleanedTags),
         cleanRaw.errors,
-        cleanRaw.warnings
+        cleanRaw.warnings,
+        info
       )
     );
     onProgress?.(i + 1, total);
