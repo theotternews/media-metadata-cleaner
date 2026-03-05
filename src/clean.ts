@@ -3,13 +3,13 @@ import { platform } from '@tauri-apps/plugin-os';
 import { ChildProcess, Command } from '@tauri-apps/plugin-shell';
 import { CleanRaw, CleanedResult, ImageInfo, MimeTypes } from './types';
 
-// const keepTags: readonly string[] = [
-//   'ColorSpace',
-//   'Orientation',
-//   'ResolutionUnit',
-//   'XResolution',
-//   'YResolution',
-// ] as const;
+const keepTags: readonly string[] = [
+  '-ColorSpaceTags',
+  '-Orientation',
+  '-ResolutionUnit',
+  '-XResolution',
+  '-YResolution',
+] as const;
 
 const displayMimeTypes: readonly string[] = [
   'image/gif',
@@ -62,14 +62,25 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
     errors.push(copyMessage);
   }
 
-  const cleanAllCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['-all:all=', '-overwrite_original', cleanedFilename]);
+  const keepTagsArgs = ["-TagsFromFile", "@", ...keepTags];
+  const cleanArgs = ['-all:all=', '-CommonIFD0=', '-overwrite_original', ...keepTagsArgs, cleanedFilename];
+  console.log(`cleanArgs: ${cleanArgs}`);
+
+  const cleanAllCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', cleanArgs);
   const cleanAllProcess = (await cleanAllCommand.execute()) as ChildProcess<string>;
   if (cleanAllProcess.code !== 0) {
     console.error(`Error cleaning file ${filename}: ${cleanAllProcess.stderr.toString()}`);
     errors.push(cleanAllProcess.stderr.toString());
   } else if (cleanAllProcess.stderr.length > 0) {
-    console.warn(`Warning cleaning file ${cleanedFilename}: ${cleanAllProcess.stderr.toString()}`);
-    warnings.push(cleanAllProcess.stderr.toString());
+    for (const line of cleanAllProcess.stderr.toString().split('\n')) {
+      if (line.trim() === '' || line.startsWith('Warning: ICC_Profile deleted. Image colors may be affected')) {
+        continue;
+      }
+      warnings.push(line);
+    }
+  }
+  if (warnings.length > 0) {
+    console.warn(`Warning cleaning file ${cleanedFilename}: ${warnings}`);
   }
   console.log(`While cleaning file ${filename}: ${cleanAllProcess.stdout.toString()}`);
 
