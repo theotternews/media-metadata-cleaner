@@ -1,6 +1,6 @@
 # media-metadata-cleaner
 
-Desktop app that strips metadata from images (EXIF, XMP, etc.) using [exiftool](https://exiftool.org). HEIC is re-encoded as JPEG at 100% quality.
+Desktop app that removes metadata from images using [exiftool](https://exiftool.org).
 
 ## Installation
 
@@ -8,16 +8,20 @@ Download the latest release for your platform from **[Releases](https://github.c
 
 ## Usage
 
-1. Click the button to choose image files (e.g. JPEG, PNG, HEIC). Multiple selection is allowed.
-2. Wait for processing. Each file gets an row in the results: **Original** vs **Cleaned** image and tags, as well as any errors or warnings.
-3. Green rows succeeded; yellow had warnings; red had errors.
-4. Cleaned files are written next to the originals with a `-cleaned` suffix (e.g. `photo.jpg` → `photo-cleaned.jpg`). Originals are never overwritten.
+1. Choose desired processing options.
+2. Choose image file(s) to clean, multiple selection is allowed.
+3. Each file gets a row in the results: green rows succeeded; yellow had warnings; red had errors. Click the row title to expand details.
+4. Cleaned files are written next to the originals with a `-cleaned` suffix (e.g. `photo.jpg` → `photo-cleaned.jpg`).
 
-**Notes:** Use correct file extensions (e.g. don’t name a JPEG `.png`).
+### Notes
+1. Use correct file extensions (e.g. don’t name a JPEG `.png`)
+2. For metadata removal, `exiftool` is invoked with flags `-all:all= -CommonIFD0= -TagsFromFile @ -ColorSpaceTags -Orientation -ResolutionUnit -XResolution -YResolution`. See exiftool's [options documentation](https://exiftool.org/exiftool_pod.html#OPTIONS).
 
 ## Development
 
-**Prerequisites:** [Node.js](https://nodejs.org/) (LTS), [Rust](https://rustup.rs/), [Tauri system deps](https://v2.tauri.app/start/prerequisites/) for your OS.
+### Prerequisites
+1. [Node.js](https://nodejs.org/)
+2. [Rust](https://rustup.rs/)
 
 ```bash
 git clone https://github.com/theotternews/media-metadata-cleaner.git
@@ -25,19 +29,19 @@ cd media-metadata-cleaner
 npm install
 ```
 
-First build downloads ExifTool into the app bundle (requires network).
+### Test in development
 
 ```bash
 npm run tauri dev
 ```
 
-Production build:
+### Build distributable on your platform
 
 ```bash
 npm run tauri build
 ```
 
-Outputs are under `src-tauri/target/release/bundle/` (installer or app depending on OS).
+Output installer(s) will be in `src-tauri/target/release/bundle/`.
 
 ## License
 

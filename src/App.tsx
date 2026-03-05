@@ -28,7 +28,6 @@ function NotesWithLinks() {
 
 const NOTES: ReactNode[] = [
   'This tool will do weird things if the image filename has the wrong extension (e.g., a JPEG named as \'.png\').',
-  'HEIC images are re-encoded as JPEG at 100% quality.',
   <NotesWithLinks key="notes-links" />,
 ];
 
