@@ -2,13 +2,14 @@
 * TODO
 ** icon
 ** option to rename
+** option to just view tags
 ** diff the tags for display - https://github.com/rtfpessoa/diff2html?tab=readme-ov-file
 ** Less saturated accordian title colors
-** video display
 ** warnings and errors in error box ??
 ** duplicate warnings and errors
 * WONTFIX
 ** Strip distributable on linux - https://github.com/tauri-apps/tauri/issues/14796
+** video display - uneven support, too much mem used
 * DONE
 ** Test on mac - works
 ** Test on windows - works
@@ -27,3 +28,4 @@
 ** memory issues - added checkbox option to load the media data
 ** progress bar
 ** heic and some other formats we can't display, but can convert
+** keep ICC and tags to keep
