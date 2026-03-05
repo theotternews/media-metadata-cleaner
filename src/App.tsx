@@ -87,6 +87,7 @@ function ResultAccordionItem({ result, index }: { result: CleanedResult; index: 
         <div>
           {makeCard('Error(s)', result.errors.map(styleMessage), 'text-danger')}
           {makeCard('Warning(s)', result.warnings.map(styleMessage), 'text-warning')}
+          {makeCard('Info', result.info.map(styleMessage), 'text-info')}
           <div className="grid-container">
             <div className="grid-item"><h6 className="my-0">Original</h6></div>
             <div className="grid-item"><h6 className="my-0">Cleaned</h6></div>
