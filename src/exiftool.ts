@@ -18,7 +18,7 @@ const WARNINGS_TO_IGNORE = [
 
 const INVALID_MIME_MESSAGE = 'Only media files that exiftool can read and write are supported.';
 
-function shouldIgnoreWarning(line: string): boolean {
+export function shouldIgnoreWarning(line: string): boolean {
   if (line.trim() === '') return true;
   return WARNINGS_TO_IGNORE.some((prefix) => line.startsWith(prefix));
 }

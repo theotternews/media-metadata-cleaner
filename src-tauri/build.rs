@@ -3,37 +3,7 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
-/// Convert git remote URL to HTTPS base URL for homepage/issues.
-fn git_remote_to_https(url: &str) -> String {
-    let url = url.trim();
-    if url.starts_with("https://") || url.starts_with("http://") {
-        return url
-            .trim_end_matches('/')
-            .trim_end_matches(".git")
-            .to_string();
-    }
-    if url.starts_with("ssh://") {
-        return url
-            .replacen("ssh://", "https://", 1)
-            .trim_end_matches('/')
-            .trim_end_matches(".git")
-            .to_string();
-    }
-    if let Some(after) = url.strip_prefix("git@") {
-        let (host, path) = after
-            .split_once(':')
-            .or_else(|| after.split_once('/'))
-            .unwrap_or((after, ""));
-        let path = path.trim_end_matches(".git").trim_start_matches('/');
-        if path.is_empty() {
-            format!("https://{}", host)
-        } else {
-            format!("https://{}/{}", host, path)
-        }
-    } else {
-        url.to_string()
-    }
-}
+include!("src/url_utils.rs");
 
 fn homepage_from_package_json(path: &Path) -> Option<String> {
     let content = fs::read_to_string(path).ok()?;

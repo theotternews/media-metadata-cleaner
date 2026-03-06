@@ -1,4 +1,6 @@
 mod commands;
+#[allow(dead_code)]
+mod url_utils;
 
 use tauri::menu::{Menu, MenuItem, Submenu};
 use tauri_plugin_opener::OpenerExt;
