@@ -48,10 +48,18 @@ function dirname(pathStr: string): string {
   return idx === -1 ? '' : pathStr.slice(0, idx);
 }
 
+function joinPath(dir: string, ...parts: string[]): string {
+  const sep = platform() === 'windows' ? '\\' : '/';
+  const trimmedDir = dir.replace(/[/\\]+$/, '');
+  return [trimmedDir, ...parts].join(sep);
+}
+
 export type ProcessOptions = {
   loadImageData: boolean;
   saveMode?: SaveMode;
   skipCleaning?: boolean;
+  /** When set, cleaned output is written to this directory instead of the source directory. */
+  outputDir?: string | null;
 };
 
 async function readTagsOnly(filename: string): Promise<{ origTags: string; errors: string[] }> {
@@ -68,7 +76,7 @@ async function readTagsOnly(filename: string): Promise<{ origTags: string; error
   return { origTags: origReadProcess.stdout, errors };
 }
 
-async function cleanMetadata(filename: string): Promise<CleanRaw> {
+async function cleanMetadata(filename: string, outputDir?: string | null): Promise<CleanRaw> {
   const errors: string[] = [];
   const warnings: string[] = [];
   console.log(`cleanMetadata: ${basename(filename)}`);
@@ -88,9 +96,13 @@ async function cleanMetadata(filename: string): Promise<CleanRaw> {
   const lastDot = filename.lastIndexOf('.');
   const stem = filename.slice(0, lastDot);
   const ext = filename.slice(lastDot + 1);
-  const cleanedFilename = `${stem}-cleaned.${ext}`;
+  const baseName = basename(filename);
+  const dotInBase = baseName.lastIndexOf('.');
+  const baseStem = dotInBase >= 0 ? baseName.slice(0, dotInBase) : baseName;
+  const baseExt = dotInBase >= 0 ? baseName.slice(dotInBase + 1) : ext;
+  const cleanedFilename = outputDir ? joinPath(outputDir, `${baseStem}-cleaned.${baseExt}`) : `${stem}-cleaned.${ext}`;
 
-  console.log(`copyCommand: ${basename(filename)} ${basename(cleanedFilename)}`);
+  console.log(`copyCommand: ${filename} ${cleanedFilename}`);
   const [copyCode, copyMessage] = await invoke<[number, string]>('copy_file', {
     src: filename,
     dst: cleanedFilename,
@@ -144,7 +156,7 @@ export async function processFiles(
   options: ProcessOptions,
   onProgress?: (current: number, total: number) => void
 ): Promise<CleanedResult[]> {
-  const { loadImageData, saveMode = 'cleaned-suffix', skipCleaning = false } = options;
+  const { loadImageData, saveMode = 'cleaned-suffix', skipCleaning = false, outputDir = null } = options;
   const total = filenames.length;
   const results: CleanedResult[] = [];
 
@@ -189,7 +201,7 @@ export async function processFiles(
 
     let cleanRaw: CleanRaw;
     try {
-      cleanRaw = await cleanMetadata(filename);
+      cleanRaw = await cleanMetadata(filename, outputDir);
     } catch (err) {
       results.push(
         new CleanedResult(
@@ -231,10 +243,11 @@ export async function processFiles(
 
     let outputPath = cleanRaw.cleanedFilename;
     if (cleanRaw.errors.length === 0) {
-      if (saveMode === 'overwrite') {
+      if (saveMode === 'original-filename') {
+        const dst = outputDir ? joinPath(outputDir, basename(filename)) : filename;
         const [copyCode, copyMessage] = await invoke<[number, string]>('copy_file', {
           src: cleanRaw.cleanedFilename,
-          dst: filename,
+          dst,
         });
         if (copyCode !== 0) {
           cleanRaw.errors.push(copyMessage);
@@ -243,11 +256,12 @@ export async function processFiles(
           if (removeCode !== 0) {
             console.warn(`Could not remove ${basename(cleanRaw.cleanedFilename)}: ${removeMessage}`);
           }
-          outputPath = filename;
+          outputPath = dst;
         }
       } else if (saveMode === 'random-filename') {
         const ext = filename.slice(filename.lastIndexOf('.') + 1);
-        const randomPath = `${dirname(filename)}/${crypto.randomUUID().replace(/-/g, '')}.${ext}`;
+        const outDir = outputDir ?? dirname(filename);
+        const randomPath = joinPath(outDir, `${crypto.randomUUID().replace(/-/g, '')}.${ext}`);
         const [copyCode, copyMessage] = await invoke<[number, string]>('copy_file', {
           src: cleanRaw.cleanedFilename,
           dst: randomPath,

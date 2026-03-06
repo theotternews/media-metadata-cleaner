@@ -27,6 +27,7 @@ function NotesWithLinks() {
 }
 
 const NOTES: ReactNode[] = [
+  'All processing is done locally, no data is uploaded.',
   'This tool will do weird things if the image filename has the wrong extension (e.g., a JPEG named as \'.png\').',
   <NotesWithLinks key="notes-links" />,
 ];
@@ -76,7 +77,7 @@ function resultStatusClass(result: CleanedResult): string {
   return 'accordion-item-has-success';
 }
 
-function ResultAccordionItem({ result, index, skipCleaning, saveMode }: { result: CleanedResult; index: number; skipCleaning: boolean; saveMode: SaveMode }) {
+function ResultAccordionItem({ result, index, skipCleaning, outputDir }: { result: CleanedResult; index: number; skipCleaning: boolean; outputDir: string | null }) {
   const hasOrigImage = (result.origImage?.imageData ?? '') !== '';
   const hasCleanedImage = (result.cleanedImage?.imageData ?? '') !== '';
   const hasOrigTags = (result.origImage?.tags ?? '').trim() !== '';
@@ -86,8 +87,10 @@ function ResultAccordionItem({ result, index, skipCleaning, saveMode }: { result
   const hasImageData = hasOrigImage || hasCleanedImage;
   const showOriginalColumn = hasOriginalData;
   const showCleanedColumn = !skipCleaning && hasCleanedData;
-  const showWrittenFilename = !skipCleaning && (saveMode === 'cleaned-suffix' || saveMode === 'random-filename') && result.cleanedImage.filename;
-  const headerTitle = showWrittenFilename ? `${result.origImage.filename} → ${result.cleanedImage.filename}` : result.origImage.filename;
+  const showWrittenFilename = !skipCleaning && result.cleanedImage.filename;
+  const outputDirFolderName = outputDir ? (outputDir.split(/[/\\]/).filter(Boolean).pop() ?? outputDir) : null;
+  const writtenPath = outputDirFolderName ? `${outputDirFolderName}/${result.cleanedImage.filename}` : result.cleanedImage.filename;
+  const headerTitle = showWrittenFilename ? `${result.origImage.filename} → ${writtenPath}` : result.origImage.filename;
   const singleColumn = !showCleanedColumn;
   return (
     <Accordion.Item eventKey={index.toString()} className={resultStatusClass(result)}>
@@ -123,8 +126,10 @@ function App() {
   const [resultsActiveKey, setResultsActiveKey] = useState<AccordionKey>(undefined);
   const [progress, setProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
   const [lastRunSkipCleaning, setLastRunSkipCleaning] = useState(false);
-  const [lastRunSaveMode, setLastRunSaveMode] = useState<SaveMode>('cleaned-suffix');
+  const [lastRunOutputDir, setLastRunOutputDir] = useState<string | null>(null);
   const [saveMode, setSaveMode] = useState<SaveMode>('cleaned-suffix');
+  const [saveDirectory, setSaveDirectory] = useState<'same-directory' | 'choose-directory' | string>('same-directory');
+  const [chosenDirectory, setChosenDirectory] = useState<string | null>(null);
   const [skipCleaning, setSkipCleaning] = useState(false);
   const loadMediaRef = useRef<HTMLInputElement>(null);
 
@@ -145,17 +150,18 @@ function App() {
     setProgress({ current: 0, total: files.length });
     const loadImageData = loadMediaRef.current?.checked ?? true;
     setLastRunSkipCleaning(skipCleaning);
-    setLastRunSaveMode(saveMode);
+    const outputDir = saveDirectory === 'same-directory' ? null : (saveDirectory === 'choose-directory' ? chosenDirectory : saveDirectory);
+    setLastRunOutputDir(outputDir);
     const cleanedResults = await processFiles(
       files,
-      { loadImageData, saveMode, skipCleaning },
+      { loadImageData, saveMode, skipCleaning, outputDir },
       (current, total) => setProgress({ current, total })
     );
     setProgress({ current: 0, total: 0 });
 
     console.log(cleanedResults);
     setCleanedResults(cleanedResults);
-  }, [skipCleaning, saveMode]);
+  }, [skipCleaning, saveMode, saveDirectory, chosenDirectory]);
 
   return (
     <div>
@@ -171,8 +177,8 @@ function App() {
       </Accordion>
 
       <div className="card mb-4">
+        <div className="accordion-style-header">Options</div>
         <div className="card-body">
-          <h5 className="card-title">Options</h5>
           <div className="form-check">
             <input
               ref={loadMediaRef}
@@ -197,8 +203,8 @@ function App() {
               View metadata only (don&apos;t clean)
             </label>
           </div>
-          <div className="d-flex align-items-center gap-2 mb-0">
-            <label htmlFor="saveMode" className="form-label mb-0">Save cleaned file:</label>
+          <div className="d-flex align-items-center gap-2 flex-wrap mb-0">
+            <label htmlFor="saveMode" className="form-label mb-0">Save cleaned file </label>
             <select
               id="saveMode"
               className="form-select form-select-sm w-auto"
@@ -206,10 +212,42 @@ function App() {
               onChange={(e) => setSaveMode(e.target.value as SaveMode)}
               disabled={skipCleaning}
             >
-              <option value="cleaned-suffix">as new file, adding '-cleaned'</option>
-              <option value="overwrite">overwriting original</option>
+              <option value="cleaned-suffix">as new file, adding &apos;-cleaned&apos;</option>
+              <option value="original-filename">as original filename (may overwrite original)</option>
               <option value="random-filename">as file with new, random filename</option>
             </select>
+            <span className="mb-0">in the</span>
+            <select
+              id="saveDirectory"
+              className="form-select form-select-sm w-auto"
+              value={saveDirectory}
+              onChange={async (e) => {
+                const value = e.target.value;
+                if (value === 'choose-directory') {
+                  setSaveDirectory('choose-directory');
+                  const dir = await open({ directory: true, multiple: false });
+                  if (dir != null) {
+                    setChosenDirectory(dir);
+                    setSaveDirectory(dir);
+                  } else {
+                    setSaveDirectory('same-directory');
+                  }
+                } else if (value === 'same-directory') {
+                  setSaveDirectory('same-directory');
+                  setChosenDirectory(null);
+                } else {
+                  setSaveDirectory(value);
+                }
+              }}
+              disabled={skipCleaning}
+            >
+              <option value="same-directory">same</option>
+              {chosenDirectory != null && (
+                <option value={chosenDirectory}>{chosenDirectory.split(/[/\\]/).filter(Boolean).pop() ?? chosenDirectory}</option>
+              )}
+              <option value="choose-directory">choose...</option>
+            </select>
+            <span className="mb-0">folder.</span>
           </div>
         </div>
       </div>
@@ -237,7 +275,7 @@ function App() {
           <h5 className="my-4">Results</h5>
           <Accordion id="resultsAccordion" activeKey={resultsActiveKey} onSelect={(k) => setResultsActiveKey(toAccordionKey(k))}>
             {cleanedResults.map((result, index) => (
-              <ResultAccordionItem key={index.toString()} result={result} index={index} skipCleaning={lastRunSkipCleaning} saveMode={lastRunSaveMode} />
+              <ResultAccordionItem key={index.toString()} result={result} index={index} skipCleaning={lastRunSkipCleaning} outputDir={lastRunOutputDir} />
             ))}
           </Accordion>
         </div>
