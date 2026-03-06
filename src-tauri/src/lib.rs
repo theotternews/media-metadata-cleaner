@@ -31,6 +31,14 @@ fn copy_file(src: &str, dst: &str) -> (i32, String) {
     }
 }
 
+#[tauri::command]
+fn remove_file(path: &str) -> (i32, String) {
+    match fs::remove_file(path) {
+        Ok(()) => (0, String::new()),
+        Err(e) => (1, e.to_string()),
+    }
+}
+
 include!(concat!(env!("OUT_DIR"), "/git_urls.rs"));
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -68,7 +76,7 @@ pub fn run() {
             });
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![read_file, write_file, copy_file])
+        .invoke_handler(tauri::generate_handler![read_file, write_file, copy_file, remove_file])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

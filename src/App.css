@@ -8,12 +8,30 @@ body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
+  align-items: start;
+}
+
+.grid-container--single {
+  grid-template-columns: 1fr;
 }
 
 .grid-item {
   flex: 1 1 calc(50% - 10px);
   position: relative;
   overflow-x: auto;
+}
+
+.grid-item--header {
+  padding-bottom: 0.5rem;
+  min-height: 1.5em;
+}
+
+.grid-item--header h6 {
+  font-weight: 700 !important;
+}
+
+.grid-container .grid-item pre {
+  font-weight: normal;
 }
 
 .grid-item img {

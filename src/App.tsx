@@ -2,7 +2,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { type ReactNode, useRef, useState, useCallback } from 'react';
 import Accordion from 'react-bootstrap/Accordion';
-import type { CleanedResult } from './types';
+import type { CleanedResult, SaveMode } from './types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./App.css";
 import { processFiles } from './clean';
@@ -31,7 +31,6 @@ const NOTES: ReactNode[] = [
   <NotesWithLinks key="notes-links" />,
 ];
 
-/** Wraps mime types (e.g. image/jpeg) and filenames (after " on ") in <pre> for fixed-width styling. */
 function styleMessage(text: string): ReactNode {
   const re = /([\w+-]+\/[\w+-.]+)| on ([\s\S]+?)(?=\.\s|,\s|$)/g;
   const parts: ReactNode[] = [];
@@ -77,28 +76,41 @@ function resultStatusClass(result: CleanedResult): string {
   return 'accordion-item-has-success';
 }
 
-function ResultAccordionItem({ result, index }: { result: CleanedResult; index: number }) {
-  const hasImageData = (result.origImage?.imageData ?? '') !== '' || (result.cleanedImage?.imageData ?? '') !== '';
+function ResultAccordionItem({ result, index, skipCleaning, saveMode }: { result: CleanedResult; index: number; skipCleaning: boolean; saveMode: SaveMode }) {
+  const hasOrigImage = (result.origImage?.imageData ?? '') !== '';
+  const hasCleanedImage = (result.cleanedImage?.imageData ?? '') !== '';
+  const hasOrigTags = (result.origImage?.tags ?? '').trim() !== '';
+  const hasCleanedTags = (result.cleanedImage?.tags ?? '').trim() !== '';
+  const hasOriginalData = hasOrigImage || hasOrigTags;
+  const hasCleanedData = hasCleanedImage || hasCleanedTags;
+  const hasImageData = hasOrigImage || hasCleanedImage;
+  const showOriginalColumn = hasOriginalData;
+  const showCleanedColumn = !skipCleaning && hasCleanedData;
+  const showWrittenFilename = !skipCleaning && (saveMode === 'cleaned-suffix' || saveMode === 'random-filename') && result.cleanedImage.filename;
+  const headerTitle = showWrittenFilename ? `${result.origImage.filename} → ${result.cleanedImage.filename}` : result.origImage.filename;
+  const singleColumn = !showCleanedColumn;
   return (
     <Accordion.Item eventKey={index.toString()} className={resultStatusClass(result)}>
-      <Accordion.Header>{result.origImage.filename}</Accordion.Header>
+      <Accordion.Header>{headerTitle}</Accordion.Header>
       <Accordion.Body>
         <div>
           {makeCard('Error(s)', result.errors.map(styleMessage), 'text-danger')}
           {makeCard('Warning(s)', result.warnings.map(styleMessage), 'text-warning')}
           {makeCard('Info', result.info.map(styleMessage), 'text-info')}
-          <div className="grid-container">
-            <div className="grid-item"><h6 className="my-0">Original</h6></div>
-            <div className="grid-item"><h6 className="my-0">Cleaned</h6></div>
-            {hasImageData && (
-              <>
-                <div className="grid-item">{result.origImage.imageData ? <img src={`data:${result.origImage.mimeType};base64,${result.origImage.imageData}`} alt="Original" /> : null}</div>
-                <div className="grid-item">{result.cleanedImage.imageData ? <img src={`data:${result.cleanedImage.mimeType};base64,${result.cleanedImage.imageData}`} alt="Cleaned" /> : null}</div>
-              </>
-            )}
-            <div className="grid-item"><pre>{result.origImage.tags}</pre></div>
-            <div className="grid-item"><pre>{result.cleanedImage.tags}</pre></div>
-          </div>
+          {(showOriginalColumn || showCleanedColumn) && (
+            <div className={singleColumn ? 'grid-container grid-container--single' : 'grid-container'}>
+              {showOriginalColumn && <div className="grid-item grid-item--header"><h6 className="my-0">Original</h6></div>}
+              {showCleanedColumn && <div className="grid-item grid-item--header"><h6 className="my-0">Cleaned</h6></div>}
+              {hasImageData && (
+                <>
+                  {showOriginalColumn && <div className="grid-item">{hasOrigImage ? <img src={`data:${result.origImage.mimeType};base64,${result.origImage.imageData}`} alt="Original" /> : null}</div>}
+                  {showCleanedColumn && <div className="grid-item">{hasCleanedImage ? <img src={`data:${result.cleanedImage.mimeType};base64,${result.cleanedImage.imageData}`} alt="Cleaned" /> : null}</div>}
+                </>
+              )}
+              {showOriginalColumn && <div className="grid-item"><pre>{result.origImage.tags}</pre></div>}
+              {showCleanedColumn && <div className="grid-item"><pre>{result.cleanedImage.tags}</pre></div>}
+            </div>
+          )}
         </div>
       </Accordion.Body>
     </Accordion.Item>
@@ -110,6 +122,10 @@ function App() {
   const [notesActiveKey, setNotesActiveKey] = useState<AccordionKey>('0');
   const [resultsActiveKey, setResultsActiveKey] = useState<AccordionKey>(undefined);
   const [progress, setProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
+  const [lastRunSkipCleaning, setLastRunSkipCleaning] = useState(false);
+  const [lastRunSaveMode, setLastRunSaveMode] = useState<SaveMode>('cleaned-suffix');
+  const [saveMode, setSaveMode] = useState<SaveMode>('cleaned-suffix');
+  const [skipCleaning, setSkipCleaning] = useState(false);
   const loadMediaRef = useRef<HTMLInputElement>(null);
 
   const onChooseFiles = useCallback(async () => {
@@ -125,14 +141,21 @@ function App() {
     if (files == null) {
         return;
     }
+    setCleanedResults([]);
     setProgress({ current: 0, total: files.length });
     const loadImageData = loadMediaRef.current?.checked ?? true;
-    const cleanedResults = await processFiles(files, loadImageData, (current, total) => setProgress({ current, total }));
+    setLastRunSkipCleaning(skipCleaning);
+    setLastRunSaveMode(saveMode);
+    const cleanedResults = await processFiles(
+      files,
+      { loadImageData, saveMode, skipCleaning },
+      (current, total) => setProgress({ current, total })
+    );
     setProgress({ current: 0, total: 0 });
 
     console.log(cleanedResults);
     setCleanedResults(cleanedResults);
-  }, []);
+  }, [skipCleaning, saveMode]);
 
   return (
     <div>
@@ -147,22 +170,54 @@ function App() {
         </Accordion.Item>
       </Accordion>
 
-      <div className="d-flex align-items-center gap-3 mb-4">
-        <button type="button" className="btn btn-primary" onClick={onChooseFiles}>
-          Choose files to clean...
-        </button>
-        <div className="form-check">
-          <input
-            ref={loadMediaRef}
-            className="form-check-input"
-            type="checkbox"
-            id="showMedia"
-            defaultChecked
-          />
-          <label className="form-check-label" htmlFor="showMedia">
-            Show media (uncheck when processing many media files at once)
-          </label>
+      <div className="card mb-4">
+        <div className="card-body">
+          <h5 className="card-title">Options</h5>
+          <div className="form-check">
+            <input
+              ref={loadMediaRef}
+              className="form-check-input"
+              type="checkbox"
+              id="showMedia"
+              defaultChecked
+            />
+            <label className="form-check-label" htmlFor="showMedia">
+              Show media (uncheck when processing many media files at once)
+            </label>
+          </div>
+          <div className="form-check">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              id="skipCleaning"
+              checked={skipCleaning}
+              onChange={(e) => setSkipCleaning(e.target.checked)}
+            />
+            <label className="form-check-label" htmlFor="skipCleaning">
+              View metadata only (don&apos;t clean)
+            </label>
+          </div>
+          <div className="d-flex align-items-center gap-2 mb-0">
+            <label htmlFor="saveMode" className="form-label mb-0">Save cleaned file:</label>
+            <select
+              id="saveMode"
+              className="form-select form-select-sm w-auto"
+              value={saveMode}
+              onChange={(e) => setSaveMode(e.target.value as SaveMode)}
+              disabled={skipCleaning}
+            >
+              <option value="cleaned-suffix">as new file, adding '-cleaned'</option>
+              <option value="overwrite">overwriting original</option>
+              <option value="random-filename">as file with new, random filename</option>
+            </select>
+          </div>
         </div>
+      </div>
+
+      <div className="mb-4">
+        <button type="button" className="btn btn-primary" onClick={onChooseFiles}>
+          Choose media files...
+        </button>
       </div>
 
       {progress.total > 0 && (
@@ -182,7 +237,7 @@ function App() {
           <h5 className="my-4">Results</h5>
           <Accordion id="resultsAccordion" activeKey={resultsActiveKey} onSelect={(k) => setResultsActiveKey(toAccordionKey(k))}>
             {cleanedResults.map((result, index) => (
-              <ResultAccordionItem key={index.toString()} result={result} index={index} />
+              <ResultAccordionItem key={index.toString()} result={result} index={index} skipCleaning={lastRunSkipCleaning} saveMode={lastRunSaveMode} />
             ))}
           </Accordion>
         </div>
