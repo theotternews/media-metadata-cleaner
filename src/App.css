@@ -30,8 +30,11 @@ body {
   font-weight: 700 !important;
 }
 
-.grid-container .grid-item pre {
-  font-weight: normal;
+/* Consistent rendering for metadata (avoid synthetic bold / weight flicker with nowrap). */
+.metadata-tags[data-metadata-block],
+.metadata-tags[data-metadata-block] * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .grid-item img {

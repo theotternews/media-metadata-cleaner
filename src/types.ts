@@ -1,5 +1,12 @@
 export type SaveMode = 'cleaned-suffix' | 'original-filename' | 'random-filename';
 
+export type ProcessOptions = {
+  loadImageData: boolean;
+  saveMode?: SaveMode;
+  skipCleaning?: boolean;
+  outputDir?: string | null;
+};
+
 export class CleanRaw {
   origTags: string;
   cleanedFilename: string;

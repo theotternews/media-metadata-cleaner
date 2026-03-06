@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
-import { platform } from '@tauri-apps/plugin-os';
 import { ChildProcess, Command } from '@tauri-apps/plugin-shell';
-import { CleanRaw, CleanedResult, ImageInfo, MimeTypes, type SaveMode } from './types';
+import { basename, copyThenRemove, joinPath, parseFilename, readFileForDisplay } from './fs_utils';
+import { CleanRaw, CleanedResult, ImageInfo, MimeTypes, type ProcessOptions } from './types';
 
 const keepTags: readonly string[] = [
   '-ColorSpaceTags',
@@ -18,7 +18,6 @@ const displayMimeTypes: readonly string[] = [
   'image/webp',
 ] as const;
 
-/** Warning lines starting with any of these are not added to the warnings list. */
 const warningsToIgnore: readonly string[] = [
   'Warning: ICC_Profile deleted. Image colors may be affected',
   'Warning: No writable tags set from',
@@ -34,119 +33,86 @@ function formatError(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
-function basename(path: string): string {
-  if (platform() === 'windows') {
-    return path.slice(path.lastIndexOf('\\') + 1);
-  } else {
-    return path.slice(path.lastIndexOf('/') + 1);
-  }
+function errorResult(filename: string, err: unknown): CleanedResult {
+  return new CleanedResult(
+    new ImageInfo(basename(filename)),
+    new ImageInfo(),
+    [formatError(err)],
+    [],
+    []
+  );
 }
 
-function dirname(pathStr: string): string {
-  const sep = platform() === 'windows' ? '\\' : '/';
-  const idx = pathStr.lastIndexOf(sep);
-  return idx === -1 ? '' : pathStr.slice(0, idx);
-}
+const INVALID_MIME_MESSAGE = 'Only media files that exiftool can read and write are supported.';
 
-function joinPath(dir: string, ...parts: string[]): string {
-  const sep = platform() === 'windows' ? '\\' : '/';
-  const trimmedDir = dir.replace(/[/\\]+$/, '');
-  return [trimmedDir, ...parts].join(sep);
-}
-
-export type ProcessOptions = {
-  loadImageData: boolean;
-  saveMode?: SaveMode;
-  skipCleaning?: boolean;
-  /** When set, cleaned output is written to this directory instead of the source directory. */
-  outputDir?: string | null;
-};
-
-async function readTagsOnly(filename: string): Promise<{ origTags: string; errors: string[] }> {
-  const errors: string[] = [];
+function assertValidMimeType(filename: string): void {
   const mimeType = MimeTypes.lookup(filename);
   if (!mimeType) {
-    throw new Error(`Invalid mime type for ${basename(filename)}. Only images and videos that exiftool can read and write are supported.`);
+    throw new Error(`Invalid mime type for ${basename(filename)}. ${INVALID_MIME_MESSAGE}`);
   }
-  const origReadCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['--system:all', '-ee', filename]);
-  const origReadProcess = (await origReadCommand.execute()) as ChildProcess<string>;
-  if (origReadProcess.code !== 0 && origReadProcess.stderr) {
-    errors.push(origReadProcess.stderr.toString());
+}
+
+async function readTagsWithSidecar(filename: string): Promise<{ tags: string; errors: string[] }> {
+  const errors: string[] = [];
+  const cmd = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['--system:all', '-ee', filename]);
+  const process = (await cmd.execute()) as ChildProcess<string>;
+  if (process.code !== 0 && process.stderr) {
+    errors.push(process.stderr.toString());
   }
-  return { origTags: origReadProcess.stdout, errors };
+  return { tags: process.stdout, errors };
+}
+
+/** Runs exiftool sidecar; optionally collects non-ignored stderr lines as warnings. */
+async function runExiftoolSidecar(
+  args: string[],
+  dest: { errors: string[]; warnings?: string[] }
+): Promise<{ stdout: string; code: number }> {
+  const cmd = Command.sidecar('bin/media-metadata-cleaner_exiftool', args);
+  const proc = (await cmd.execute()) as ChildProcess<string>;
+  if (proc.code !== 0 && proc.stderr) {
+    dest.errors.push(proc.stderr.toString());
+  } else if (dest.warnings && proc.stderr) {
+    for (const line of proc.stderr.toString().split('\n')) {
+      if (!shouldIgnoreWarning(line)) dest.warnings.push(line);
+    }
+  }
+  return { stdout: proc.stdout, code: proc.code ?? -1 };
+}
+
+async function readTagsOnly(filename: string): Promise<{ origTags: string; errors: string[] }> {
+  assertValidMimeType(filename);
+  const { tags, errors } = await readTagsWithSidecar(filename);
+  return { origTags: tags, errors };
 }
 
 async function cleanMetadata(filename: string, outputDir?: string | null): Promise<CleanRaw> {
   const errors: string[] = [];
   const warnings: string[] = [];
-  console.log(`cleanMetadata: ${basename(filename)}`);
 
-  const mimeType = MimeTypes.lookup(filename);
-  if (!mimeType) {
-    throw new Error(`Invalid mime type for ${basename(filename)}. Only images and videos that exiftool can read and write are supported.`);
-  }
+  assertValidMimeType(filename);
 
-  console.log(`origReadCommand: ${basename(filename)}`);
-  const origReadCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['--system:all', '-ee', filename]);
-  const origReadProcess = (await origReadCommand.execute()) as ChildProcess<string>;
-  console.log(`origReadProcess: ${origReadProcess.code}`);
-  const origTags = origReadProcess.stdout;
-  console.log(`origTags: ${JSON.stringify(origTags)}`);
+  const { tags: origTags, errors: readErrors } = await readTagsWithSidecar(filename);
+  errors.push(...readErrors);
 
-  const lastDot = filename.lastIndexOf('.');
-  const stem = filename.slice(0, lastDot);
-  const ext = filename.slice(lastDot + 1);
-  const baseName = basename(filename);
-  const dotInBase = baseName.lastIndexOf('.');
-  const baseStem = dotInBase >= 0 ? baseName.slice(0, dotInBase) : baseName;
-  const baseExt = dotInBase >= 0 ? baseName.slice(dotInBase + 1) : ext;
-  const cleanedFilename = outputDir ? joinPath(outputDir, `${baseStem}-cleaned.${baseExt}`) : `${stem}-cleaned.${ext}`;
+  const { parent, stem, ext } = parseFilename(filename);
+  const cleanedFilename = outputDir ? joinPath(outputDir, `${stem}-cleaned.${ext}`) : joinPath(parent, `${stem}-cleaned.${ext}`);
 
-  console.log(`copyCommand: ${filename} ${cleanedFilename}`);
   const [copyCode, copyMessage] = await invoke<[number, string]>('copy_file', {
     src: filename,
     dst: cleanedFilename,
   });
-  console.log(`copyCode: ${copyCode}, copyMessage: ${copyMessage}`);
   if (copyCode !== 0) {
     errors.push(copyMessage);
   }
 
   const keepTagsArgs = ["-TagsFromFile", "@", ...keepTags];
   const cleanArgs = ['-all:all=', '-CommonIFD0=', '-overwrite_original', ...keepTagsArgs, cleanedFilename];
+  const dest = { errors, warnings };
 
-  const cleanAllCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', cleanArgs);
-  const cleanAllProcess = (await cleanAllCommand.execute()) as ChildProcess<string>;
-  if (cleanAllProcess.code !== 0) {
-    console.error(`Error cleaning file ${basename(filename)}: ${cleanAllProcess.stderr.toString()}`);
-    errors.push(cleanAllProcess.stderr.toString());
-  } else if (cleanAllProcess.stderr.length > 0) {
-    for (const line of cleanAllProcess.stderr.toString().split('\n')) {
-      if (shouldIgnoreWarning(line)) continue;
-      warnings.push(line);
-    }
-  }
-  if (warnings.length > 0) {
-    console.warn(`Warning cleaning file ${basename(cleanedFilename)}: ${warnings}`);
-  }
-  console.log(`While cleaning file ${basename(filename)}: ${cleanAllProcess.stdout.toString()}`);
+  await runExiftoolSidecar(cleanArgs, dest);
+  await runExiftoolSidecar(['-time:all=', '-overwrite_original', cleanedFilename], dest);
 
-  const cleanTimeCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['-time:all=', '-overwrite_original', cleanedFilename]);
-  const cleanTimeProcess = (await cleanTimeCommand.execute()) as ChildProcess<string>;
-  if (cleanTimeProcess.code !== 0) {
-    console.error(`Error cleaning file ${basename(filename)}: ${cleanTimeProcess.stderr.toString()}`);
-    errors.push(cleanTimeProcess.stderr.toString());
-  } else if (cleanTimeProcess.stderr.length > 0) {
-    for (const line of cleanTimeProcess.stderr.toString().split('\n')) {
-      if (shouldIgnoreWarning(line)) continue;
-      warnings.push(line);
-    }
-  }
-  console.log(`While cleaning file ${basename(cleanedFilename)}: ${cleanTimeProcess.stdout.toString()}`);
-
-  const cleanedReadCommand = Command.sidecar('bin/media-metadata-cleaner_exiftool', ['--system:all', '-ee', cleanedFilename]);
-  const cleanedReadProcess = (await cleanedReadCommand.execute()) as ChildProcess<string>;
-  const cleanedTags = cleanedReadProcess.stdout;
+  const { tags: cleanedTags } = await readTagsWithSidecar(cleanedFilename);
 
   return new CleanRaw(origTags, cleanedFilename, cleanedTags, errors, warnings);
 }
@@ -172,8 +138,8 @@ export async function processFiles(
         let origImageData = '';
         const origMimeType = MimeTypes.lookup(filename) as string;
         if (loadImageData && displayMimeTypes.includes(origMimeType)) {
-          const [readCode, , data] = await invoke<[number, string, string]>('read_file', { path: filename });
-          if (readCode === 0) origImageData = data;
+          const res = await readFileForDisplay(filename);
+          origImageData = res.data;
         } else if (loadImageData && origMimeType) {
           info.push(`Not displaying ${basename(filename)} because media type ${origMimeType} can not be displayed.`);
         }
@@ -187,15 +153,7 @@ export async function processFiles(
           )
         );
       } catch (err) {
-        results.push(
-          new CleanedResult(
-            new ImageInfo(basename(filename)),
-            new ImageInfo(),
-            [formatError(err)],
-            [],
-            []
-          )
-        );
+        results.push(errorResult(filename, err));
       }
       onProgress?.(i + 1, total);
       continue;
@@ -205,15 +163,7 @@ export async function processFiles(
     try {
       cleanRaw = await cleanMetadata(filename, outputDir);
     } catch (err) {
-      results.push(
-        new CleanedResult(
-          new ImageInfo(basename(filename)),
-          new ImageInfo(),
-          [formatError(err)],
-          [],
-          []
-        )
-      );
+      results.push(errorResult(filename, err));
       onProgress?.(i + 1, total);
       continue;
     }
@@ -225,19 +175,11 @@ export async function processFiles(
 
     if (loadImageData) {
       if (displayMimeTypes.includes(origMimeType)) {
-        const [readCode, readMessage, data] = await invoke<[number, string, string]>('read_file', { path: filename });
-        if (readCode !== 0) {
-          console.error(`Error reading file ${basename(filename)}: ${readMessage}`);
-        } else {
-          origImageData = data;
-        }
+        const origRes = await readFileForDisplay(filename);
+        origImageData = origRes.error ? '' : origRes.data;
 
-        const [cleanedReadCode, cleanedReadMessage, cleanedData] = await invoke<[number, string, string]>('read_file', { path: cleanRaw.cleanedFilename });
-        if (cleanedReadCode !== 0) {
-          console.error(`Error reading file ${basename(cleanRaw.cleanedFilename)}: ${cleanedReadMessage}`);
-        } else {
-          cleanedImageData = cleanedData;
-        }
+        const cleanedRes = await readFileForDisplay(cleanRaw.cleanedFilename);
+        cleanedImageData = cleanedRes.error ? '' : cleanedRes.data;
       } else {
         info.push(`Not displaying ${basename(filename)} because media type ${origMimeType} can not be displayed.`);
       }
@@ -247,42 +189,19 @@ export async function processFiles(
     if (cleanRaw.errors.length === 0) {
       if (saveMode === 'original-filename') {
         const dst = outputDir ? joinPath(outputDir, basename(filename)) : filename;
-        const [copyCode, copyMessage] = await invoke<[number, string]>('copy_file', {
-          src: cleanRaw.cleanedFilename,
-          dst,
-        });
-        if (copyCode !== 0) {
-          cleanRaw.errors.push(copyMessage);
-        } else {
-          const [removeCode, removeMessage] = await invoke<[number, string]>('remove_file', { path: cleanRaw.cleanedFilename });
-          if (removeCode !== 0) {
-            console.warn(`Could not remove ${basename(cleanRaw.cleanedFilename)}: ${removeMessage}`);
-          }
+        if (await copyThenRemove(cleanRaw.cleanedFilename, dst, cleanRaw.errors)) {
           outputPath = dst;
         }
       } else if (saveMode === 'random-filename') {
-        const ext = filename.slice(filename.lastIndexOf('.') + 1);
-        const outDir = outputDir ?? dirname(filename);
+        const { parent, ext } = parseFilename(filename);
+        const outDir = outputDir ?? parent;
         const randomPath = joinPath(outDir, `${crypto.randomUUID().replace(/-/g, '')}.${ext}`);
-        const [copyCode, copyMessage] = await invoke<[number, string]>('copy_file', {
-          src: cleanRaw.cleanedFilename,
-          dst: randomPath,
-        });
-        if (copyCode !== 0) {
-          cleanRaw.errors.push(copyMessage);
-        } else {
-          const [removeCode, removeMessage] = await invoke<[number, string]>('remove_file', { path: cleanRaw.cleanedFilename });
-          if (removeCode !== 0) {
-            console.warn(`Could not remove ${basename(cleanRaw.cleanedFilename)}: ${removeMessage}`);
-          }
+        if (await copyThenRemove(cleanRaw.cleanedFilename, randomPath, cleanRaw.errors)) {
           outputPath = randomPath;
         }
       }
     } else {
-      const [removeCode, removeMessage] = await invoke<[number, string]>('remove_file', { path: cleanRaw.cleanedFilename });
-      if (removeCode !== 0) {
-        console.warn(`Could not remove ${basename(cleanRaw.cleanedFilename)}: ${removeMessage}`);
-      }
+      await invoke<[number, string]>('remove_file', { path: cleanRaw.cleanedFilename });
     }
 
     results.push(

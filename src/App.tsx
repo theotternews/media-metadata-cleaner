@@ -1,6 +1,6 @@
 import { open } from '@tauri-apps/plugin-dialog';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { type ReactNode, useRef, useState, useCallback } from 'react';
+import { type CSSProperties, type ReactNode, useRef, useState, useCallback } from 'react';
 import Accordion from 'react-bootstrap/Accordion';
 import type { CleanedResult, SaveMode } from './types';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -10,6 +10,27 @@ import { processFiles } from './clean';
 const REPO_URL = 'https://github.com/theotternews/media-metadata-cleaner';
 
 const INLINE_PRE_CLASS = 'd-inline mb-0 p-0 font-monospace border-0 bg-transparent';
+
+const METADATA_LINE_STYLE: CSSProperties = {
+  fontWeight: 400,
+  fontFamily: '"Consolas", "Monaco", "Liberation Mono", "Courier New", monospace',
+  margin: 0,
+  whiteSpace: 'nowrap',
+  fontSynthesis: 'none',
+  textRendering: 'geometricPrecision',
+};
+
+/** Renders metadata text line-by-line so each line has explicit normal weight (avoids inherited bold). */
+function MetadataBlock({ text }: { text: string }) {
+  const lines = (text ?? '').split('\n');
+  return (
+    <div className="metadata-tags" data-metadata-block style={METADATA_LINE_STYLE}>
+      {lines.map((line, i) => (
+        <div key={i} style={METADATA_LINE_STYLE}>{line || '\u00A0'}</div>
+      ))}
+    </div>
+  );
+}
 
 type AccordionKey = string | string[] | undefined;
 const toAccordionKey = (k: string | string[] | null | undefined): AccordionKey =>
@@ -101,7 +122,7 @@ function ResultAccordionItem({ result, index, skipCleaning, outputDir }: { resul
           {makeCard('Warning(s)', result.warnings.map(styleMessage), 'text-warning')}
           {makeCard('Info', result.info.map(styleMessage), 'text-info')}
           {(showOriginalColumn || showCleanedColumn) && (
-            <div className={singleColumn ? 'grid-container grid-container--single' : 'grid-container'}>
+            <div className={`metadata-tags-wrap ${singleColumn ? 'grid-container grid-container--single' : 'grid-container'}`}>
               {showOriginalColumn && <div className="grid-item grid-item--header"><h6 className="my-0">Original</h6></div>}
               {showCleanedColumn && <div className="grid-item grid-item--header"><h6 className="my-0">Cleaned</h6></div>}
               {hasImageData && (
@@ -110,8 +131,8 @@ function ResultAccordionItem({ result, index, skipCleaning, outputDir }: { resul
                   {showCleanedColumn && <div className="grid-item">{hasCleanedImage ? <img src={`data:${result.cleanedImage.mimeType};base64,${result.cleanedImage.imageData}`} alt="Cleaned" /> : null}</div>}
                 </>
               )}
-              {showOriginalColumn && <div className="grid-item"><pre>{result.origImage.tags}</pre></div>}
-              {showCleanedColumn && <div className="grid-item"><pre>{result.cleanedImage.tags}</pre></div>}
+              {showOriginalColumn && <div className="grid-item"><MetadataBlock text={result.origImage.tags ?? ''} /></div>}
+              {showCleanedColumn && <div className="grid-item"><MetadataBlock text={result.cleanedImage.tags ?? ''} /></div>}
             </div>
           )}
         </div>
