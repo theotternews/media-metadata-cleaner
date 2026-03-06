@@ -1,3 +1,5 @@
+export type SaveMode = 'cleaned-suffix' | 'original-filename' | 'random-filename';
+
 export class CleanRaw {
   origTags: string;
   cleanedFilename: string;
