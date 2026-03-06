@@ -1,47 +1,10 @@
-use base64::Engine;
-use std::fs;
+mod commands;
+
 use tauri::menu::{Menu, MenuItem, Submenu};
 use tauri_plugin_opener::OpenerExt;
 
-#[tauri::command]
-fn read_file(path: &str) -> (i32, String, String) {
-    match fs::read(path) {
-        Ok(data) => (
-            0,
-            String::new(),
-            base64::engine::general_purpose::STANDARD.encode(&data),
-        ),
-        Err(e) => (1, e.to_string(), String::new()),
-    }
-}
-
-#[tauri::command]
-fn write_file(path: &str, data: &[u8]) -> (i32, String) {
-    match fs::write(path, data) {
-        Ok(()) => (0, String::new()),
-        Err(e) => (1, e.to_string()),
-    }
-}
-
-#[tauri::command]
-fn copy_file(src: &str, dst: &str) -> (i32, String) {
-    match fs::copy(src, dst) {
-        Ok(bytes) => (0, format!("Copied {} bytes", bytes)),
-        Err(e) => (1, e.to_string()),
-    }
-}
-
-#[tauri::command]
-fn remove_file(path: &str) -> (i32, String) {
-    match fs::remove_file(path) {
-        Ok(()) => (0, String::new()),
-        Err(e) => (1, e.to_string()),
-    }
-}
-
 include!(concat!(env!("OUT_DIR"), "/git_urls.rs"));
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -60,23 +23,20 @@ pub fn run() {
             Menu::with_items(handle, &[&file, &help])
         })
         .setup(|app| {
-            app.on_menu_event(|app_handle, event| {
-                match event.id().0.as_str() {
-                    "quit" => {
-                        app_handle.exit(0);
-                    }
-                    "report_problem" => {
-                        let _ = app_handle.opener().open_url(ISSUES_URL, None::<&str>);
-                    }
-                    "homepage" => {
-                        let _ = app_handle.opener().open_url(HOMEPAGE_URL, None::<&str>);
-                    }
-                    _ => {}
-                }
+            app.on_menu_event(|app_handle, event| match event.id().0.as_str() {
+                "quit" => app_handle.exit(0),
+                "report_problem" => { let _ = app_handle.opener().open_url(ISSUES_URL, None::<&str>); }
+                "homepage" => { let _ = app_handle.opener().open_url(HOMEPAGE_URL, None::<&str>); }
+                _ => {}
             });
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![read_file, write_file, copy_file, remove_file])
+        .invoke_handler(tauri::generate_handler![
+            commands::read_file,
+            commands::write_file,
+            commands::copy_file,
+            commands::remove_file,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -31,18 +31,22 @@ export function parseFilename(filename: string): { parent: string; stem: string;
 }
 
 export async function readFileForDisplay(path: string): Promise<{ data: string; error?: string }> {
-  const [code, message, data] = await invoke<[number, string, string]>('read_file', { path });
-  if (code !== 0) return { data: '', error: message };
-  return { data };
+  try {
+    const data = await invoke<string>('read_file', { path });
+    return { data };
+  } catch (err) {
+    return { data: '', error: err instanceof Error ? err.message : String(err) };
+  }
 }
 
 /** Copies src to dst, then removes src. Pushes copy errors into `errors`. Returns true if copy succeeded. */
 export async function copyThenRemove(src: string, dst: string, errors: string[]): Promise<boolean> {
-  const [copyCode, copyMessage] = await invoke<[number, string]>('copy_file', { src, dst });
-  if (copyCode !== 0) {
-    errors.push(copyMessage);
+  try {
+    await invoke<number>('copy_file', { src, dst });
+  } catch (err) {
+    errors.push(err instanceof Error ? err.message : String(err));
     return false;
   }
-  await invoke<[number, string]>('remove_file', { path: src });
+  await invoke('remove_file', { path: src });
   return true;
 }

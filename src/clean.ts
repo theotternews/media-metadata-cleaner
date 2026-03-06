@@ -43,12 +43,10 @@ async function cleanMetadata(filename: string, outputDir?: string | null): Promi
   const { parent, stem, ext } = parseFilename(filename);
   const cleanedFilename = joinPath(outputDir ?? parent, `${stem}-cleaned.${ext}`);
 
-  const [copyCode, copyMessage] = await invoke<[number, string]>('copy_file', {
-    src: filename,
-    dst: cleanedFilename,
-  });
-  if (copyCode !== 0) {
-    errors.push(copyMessage);
+  try {
+    await invoke<number>('copy_file', { src: filename, dst: cleanedFilename });
+  } catch (err) {
+    errors.push(err instanceof Error ? err.message : String(err));
   }
 
   const keepTagsArgs = ['-TagsFromFile', '@', ...KEEP_TAGS];
@@ -138,7 +136,7 @@ async function processAndClean(
       }
     }
   } else {
-    await invoke<[number, string]>('remove_file', { path: cleanRaw.cleanedFilename });
+    await invoke('remove_file', { path: cleanRaw.cleanedFilename });
   }
 
   return {
