@@ -131,37 +131,56 @@ function App() {
   const [saveDirectory, setSaveDirectory] = useState<'same-directory' | 'choose-directory' | string>('same-directory');
   const [chosenDirectory, setChosenDirectory] = useState<string | null>(null);
   const [skipCleaning, setSkipCleaning] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<string[] | null>(null);
   const loadMediaRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const onChooseFiles = useCallback(async () => {
-    setNotesActiveKey(undefined);
-    setResultsActiveKey(undefined);
-
     const files = await open({
       multiple: true,
       directory: false,
     });
-    console.log(files);
-
-    if (files == null) {
-        return;
+    if (files != null) {
+      setSelectedFiles(Array.isArray(files) ? files : [files]);
     }
+  }, []);
+
+  const onGo = useCallback(async () => {
+    if (selectedFiles == null || selectedFiles.length === 0) return;
+    setNotesActiveKey(undefined);
+    setResultsActiveKey(undefined);
     setCleanedResults([]);
-    setProgress({ current: 0, total: files.length });
+    setProgress({ current: 0, total: selectedFiles.length });
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     const loadImageData = loadMediaRef.current?.checked ?? true;
     setLastRunSkipCleaning(skipCleaning);
     const outputDir = saveDirectory === 'same-directory' ? null : (saveDirectory === 'choose-directory' ? chosenDirectory : saveDirectory);
     setLastRunOutputDir(outputDir);
-    const cleanedResults = await processFiles(
-      files,
-      { loadImageData, saveMode, skipCleaning, outputDir },
-      (current, total) => setProgress({ current, total })
-    );
-    setProgress({ current: 0, total: 0 });
+    try {
+      const cleanedResults = await processFiles(
+        selectedFiles,
+        { loadImageData, saveMode, skipCleaning, outputDir },
+        (current, total) => setProgress({ current, total }),
+        controller.signal
+      );
+      setCleanedResults(cleanedResults);
+      setSelectedFiles(null);
+    } finally {
+      abortControllerRef.current = null;
+      setProgress({ current: 0, total: 0 });
+    }
+  }, [selectedFiles, skipCleaning, saveMode, saveDirectory, chosenDirectory]);
 
-    console.log(cleanedResults);
-    setCleanedResults(cleanedResults);
-  }, [skipCleaning, saveMode, saveDirectory, chosenDirectory]);
+  const onCancel = useCallback(() => {
+    if (progress.total > 0) {
+      abortControllerRef.current?.abort();
+    } else {
+      setSelectedFiles(null);
+      setCleanedResults([]);
+      setProgress({ current: 0, total: 0 });
+    }
+  }, [progress.total]);
 
   return (
     <div>
@@ -252,9 +271,15 @@ function App() {
         </div>
       </div>
 
-      <div className="mb-4">
-        <button type="button" className="btn btn-primary" onClick={onChooseFiles}>
+      <div className="mb-4 d-flex align-items-center gap-2">
+        <button type="button" className="btn btn-primary" onClick={onChooseFiles} disabled={progress.total > 0}>
           Choose media files...
+        </button>
+        <button type="button" className="btn btn-outline-secondary" onClick={onCancel} disabled={progress.total === 0 && !selectedFiles?.length && cleanedResults.length === 0}>
+          {progress.total > 0 ? 'Cancel' : selectedFiles?.length || cleanedResults.length > 0 ? 'Clear' : 'Cancel'}
+        </button>
+        <button type="button" className={`btn ${selectedFiles?.length ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={onGo} disabled={selectedFiles == null || selectedFiles.length === 0}>
+          {selectedFiles?.length ? `Process ${selectedFiles.length} file${selectedFiles.length === 1 ? '' : 's'}` : 'Process'}
         </button>
       </div>
 

@@ -154,13 +154,15 @@ async function cleanMetadata(filename: string, outputDir?: string | null): Promi
 export async function processFiles(
   filenames: string[],
   options: ProcessOptions,
-  onProgress?: (current: number, total: number) => void
+  onProgress?: (current: number, total: number) => void,
+  signal?: AbortSignal
 ): Promise<CleanedResult[]> {
   const { loadImageData, saveMode = 'cleaned-suffix', skipCleaning = false, outputDir = null } = options;
   const total = filenames.length;
   const results: CleanedResult[] = [];
 
   for (let i = 0; i < filenames.length; i++) {
+    if (signal?.aborted) break;
     const filename = filenames[i];
     let info: string[] = [];
 
