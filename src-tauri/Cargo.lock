@@ -1989,6 +1989,7 @@ dependencies = [
  "tauri-plugin-opener",
  "tauri-plugin-os",
  "tauri-plugin-shell",
+ "tempfile",
 ]
 
 [[package]]
