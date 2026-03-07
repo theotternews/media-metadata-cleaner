@@ -143,7 +143,7 @@ describe('processFiles', () => {
       expect(result.errors).toEqual([]);
 
       const copyCall = mockInvoke.mock.calls.find(
-        ([cmd]: string[]) => cmd === 'copy_file',
+        (call) => call[0] === 'copy_file',
       );
       expect(copyCall).toBeDefined();
     });
@@ -201,8 +201,7 @@ describe('processFiles', () => {
       expect(result.errors).toEqual([]);
 
       const firstCopy = mockInvoke.mock.calls.find(
-        ([cmd, args]: [string, { dst?: string }]) =>
-          cmd === 'copy_file' && args.dst?.startsWith('/tmp/output'),
+        (call) => call[0] === 'copy_file' && (call[1] as { dst?: string })?.dst?.startsWith('/tmp/output'),
       );
       expect(firstCopy).toBeDefined();
     });
@@ -222,7 +221,7 @@ describe('processFiles', () => {
       expect(result.errors.length).toBeGreaterThan(0);
 
       const removeCall = mockInvoke.mock.calls.find(
-        ([cmd]: string[]) => cmd === 'remove_file',
+        (call) => call[0] === 'remove_file',
       );
       expect(removeCall).toBeDefined();
     });
