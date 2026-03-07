@@ -29,6 +29,9 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Download exiftool sidecar
+        run: bash scripts/get_latest_exiftool.sh
+
       - name: Run TypeScript tests
         run: npm test
 
