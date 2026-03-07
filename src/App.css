@@ -77,31 +77,25 @@ body {
 }
 
 .accordion-item-has-error .accordion-button {
-  background-color: var(--bs-danger) !important;
-  color: var(--bs-white) !important;
+  border-left: 10px solid var(--bs-danger) !important;
 }
 
 .accordion-item-has-error .accordion-button:hover {
-  background-color: #b02a37 !important;
-  color: var(--bs-white) !important;
+  border-left-color: var(--bs-danger) !important;
 }
 
 .accordion-item-has-warning .accordion-button {
-  background-color: var(--bs-warning) !important;
-  color: var(--bs-dark) !important;
+  border-left: 10px solid var(--bs-warning) !important;
 }
 
 .accordion-item-has-warning .accordion-button:hover {
-  background-color: #e6ac00 !important;
-  color: var(--bs-dark) !important;
+  border-left-color: var(--bs-warning) !important;
 }
 
 .accordion-item-has-success .accordion-button {
-  background-color: var(--bs-success) !important;
-  color: var(--bs-white) !important;
+  border-left: 10px solid var(--bs-success) !important;
 }
 
 .accordion-item-has-success .accordion-button:hover {
-  background-color: #157347 !important;
-  color: var(--bs-white) !important;
+  border-left-color: var(--bs-success) !important;
 }

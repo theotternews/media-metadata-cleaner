@@ -2,9 +2,7 @@
 * TODO
 ** face info??? in IMG_0857.mp4 and IMG_0593.mov
 ** icon
-** tests
 ** diff the tags for display - https://github.com/rtfpessoa/diff2html?tab=readme-ov-file
-** Less saturated accordian title colors
 ** warnings and errors in error box ??
 ** duplicate warnings and errors
 * WONTFIX
@@ -32,3 +30,7 @@
 ** option to rename
 ** option to just view tags
 ** cancel / go / num chosen in choose files button
+** less saturated accordian title colors - just side tab
+** border only colored?
+** test with an image i know has GPS info
+** tests

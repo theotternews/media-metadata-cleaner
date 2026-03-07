@@ -137,12 +137,18 @@ interface ActionBarProps {
   onCancel: () => void;
   onProcess: () => void;
   isProcessing: boolean;
+  processingCount: number;
   selectedCount: number;
   hasResults: boolean;
 }
 
-function ActionBar({ onChooseFiles, onCancel, onProcess, isProcessing, selectedCount, hasResults }: ActionBarProps) {
+function ActionBar({ onChooseFiles, onCancel, onProcess, isProcessing, processingCount, selectedCount, hasResults }: ActionBarProps) {
   const canClear = !isProcessing && (selectedCount > 0 || hasResults);
+  const processButtonText = isProcessing
+    ? `Processing ${processingCount} file${processingCount === 1 ? '' : 's'}...`
+    : selectedCount > 0
+      ? `Process ${selectedCount} file${selectedCount === 1 ? '' : 's'}`
+      : 'Process';
   return (
     <div className="mb-4 d-flex align-items-center gap-2">
       <button type="button" className="btn btn-primary" onClick={onChooseFiles} disabled={isProcessing}>
@@ -155,9 +161,9 @@ function ActionBar({ onChooseFiles, onCancel, onProcess, isProcessing, selectedC
         type="button"
         className={`btn ${selectedCount > 0 ? 'btn-primary' : 'btn-outline-secondary'}`}
         onClick={onProcess}
-        disabled={selectedCount === 0}
+        disabled={selectedCount === 0 || isProcessing}
       >
-        {selectedCount > 0 ? `Process ${selectedCount} file${selectedCount === 1 ? '' : 's'}` : 'Process'}
+        {processButtonText}
       </button>
     </div>
   );
@@ -268,6 +274,7 @@ function App() {
         onCancel={onCancel}
         onProcess={onProcess}
         isProcessing={isProcessing}
+        processingCount={progress.total}
         selectedCount={selectedCount}
         hasResults={cleanedResults.length > 0}
       />
