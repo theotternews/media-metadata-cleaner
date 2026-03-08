@@ -14,8 +14,9 @@ Download the latest release for your platform from **[Releases](https://github.c
 4. Cleaned files are written next to the originals with a `-cleaned` suffix (e.g. `photo.jpg` → `photo-cleaned.jpg`).
 
 ### Notes
-1. Use correct file extensions (e.g. don’t name a JPEG `.png`)
-2. For metadata removal, `exiftool` is invoked with flags `-all:all= -CommonIFD0= -TagsFromFile @ -ColorSpaceTags -Orientation -ResolutionUnit -XResolution -YResolution`. See exiftool's [options documentation](https://exiftool.org/exiftool_pod.html#OPTIONS).
+1. All processing happens locally, no data is uploaded.
+2. Use correct file extensions (e.g. don’t name a JPEG `.png`)
+3. For metadata removal, `exiftool` is invoked with flags `-all:all= -CommonIFD0= -TagsFromFile @ -ColorSpaceTags -Orientation -ResolutionUnit -XResolution -YResolution`. See exiftool's [options documentation](https://exiftool.org/exiftool_pod.html#OPTIONS).
 
 ## Development
 
