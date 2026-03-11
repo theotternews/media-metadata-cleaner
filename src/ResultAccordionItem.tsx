@@ -35,8 +35,11 @@ function highlightInNode(node: ReactNode, query: string): ReactNode {
   if (Array.isArray(node)) {
     return node.map((child, i) => <React.Fragment key={i}>{highlightInNode(child, query)}</React.Fragment>);
   }
-  if (React.isValidElement(node) && node.props.children != null) {
-    return React.cloneElement(node, {}, highlightInNode(node.props.children, query));
+  if (React.isValidElement(node)) {
+    const { children } = node.props as { children?: ReactNode };
+    if (children != null) {
+      return React.cloneElement(node, {}, highlightInNode(children, query));
+    }
   }
   return node;
 }
