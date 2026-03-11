@@ -99,3 +99,9 @@ body {
 .accordion-item-has-success .accordion-button:hover {
   border-left-color: var(--bs-success) !important;
 }
+
+.search-highlight {
+  background-color: rgba(255, 235, 59, 0.6);
+  padding: 0 0.1em;
+  border-radius: 0.15em;
+}

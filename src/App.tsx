@@ -7,6 +7,21 @@ import { processFiles } from './clean';
 import { ResultAccordionItem } from './ResultAccordionItem';
 import type { CleanedResult, SaveMode } from './types';
 
+function matchesSearch(result: CleanedResult, query: string): boolean {
+  if (!query.trim()) return true;
+  const q = query.trim().toLowerCase();
+  const searchable = [
+    result.origImage.filename,
+    result.cleanedImage.filename,
+    result.origImage.tags ?? '',
+    result.cleanedImage.tags ?? '',
+    ...result.errors,
+    ...result.warnings,
+    ...result.info,
+  ].join(' ');
+  return searchable.toLowerCase().includes(q);
+}
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -185,6 +200,7 @@ function App() {
   const [chosenDirectory, setChosenDirectory] = useState<string | null>(null);
   const [skipCleaning, setSkipCleaning] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<string[] | null>(null);
+  const [resultsSearchQuery, setResultsSearchQuery] = useState('');
   const loadMediaRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -202,6 +218,7 @@ function App() {
     if (!selectedFiles?.length) return;
     setNotesActiveKey(undefined);
     setResultsActiveKey(undefined);
+    setResultsSearchQuery('');
     setCleanedResults([]);
     setProgress({ current: 0, total: selectedFiles.length });
     const controller = new AbortController();
@@ -231,6 +248,7 @@ function App() {
     } else {
       setSelectedFiles(null);
       setCleanedResults([]);
+      setResultsSearchQuery('');
       setProgress({ current: 0, total: 0 });
     }
   }, [isProcessing]);
@@ -293,11 +311,30 @@ function App() {
 
       {cleanedResults.length > 0 && (
         <div>
-          <h5 className="my-4">Results</h5>
+          <div className="d-flex align-items-center gap-2 flex-wrap my-4">
+            <h5 className="mb-0">Results</h5>
+            <input
+              type="search"
+              className="form-control form-control-sm"
+              placeholder="Search results..."
+              value={resultsSearchQuery}
+              onChange={(e) => setResultsSearchQuery(e.target.value)}
+              style={{ maxWidth: '16rem' }}
+              aria-label="Search results"
+            />
+            {resultsSearchQuery.trim() && (
+              <span className="text-muted small">
+                {cleanedResults.filter((r) => matchesSearch(r, resultsSearchQuery)).length} of {cleanedResults.length}
+              </span>
+            )}
+          </div>
           <Accordion id="resultsAccordion" activeKey={resultsActiveKey} onSelect={(k) => setResultsActiveKey(toAccordionKey(k))}>
-            {cleanedResults.map((result, index) => (
-              <ResultAccordionItem key={index.toString()} result={result} index={index} skipCleaning={lastRunSkipCleaning} outputDir={lastRunOutputDir} />
-            ))}
+            {cleanedResults
+              .map((result, index) => ({ result, index }))
+              .filter(({ result }) => matchesSearch(result, resultsSearchQuery))
+              .map(({ result, index }) => (
+                <ResultAccordionItem key={index} result={result} index={index} skipCleaning={lastRunSkipCleaning} outputDir={lastRunOutputDir} searchQuery={resultsSearchQuery} />
+              ))}
           </Accordion>
         </div>
       )}
