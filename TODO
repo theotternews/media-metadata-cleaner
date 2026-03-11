@@ -1,5 +1,8 @@
 # -*- mode: org; -*-
 * TODO
+** code signing
+*** mac - https://jonaskruckenberg.github.io/tauri-docs-wip/distributing/macos.html
+*** windows - https://jonaskruckenberg.github.io/tauri-docs-wip/distributing/windows.html
 ** face info??? in IMG_0857.mp4 and IMG_0593.mov
 ** icon
 ** diff the tags for display - https://github.com/rtfpessoa/diff2html?tab=readme-ov-file
