@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media Metadata Cleaner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Media Metadata Cleaner</h1>
+    <p class="tagline">Remove hidden metadata from your photos and videos—on your own computer.</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>What does this tool do?</h2>
+      <p>Photos and videos often contain <strong>metadata</strong>: information stored inside the file, such as the date and time it was taken, the device or camera model, and sometimes location (GPS). This app lets you <strong>remove that metadata</strong> before you share files, so you don’t accidentally share more than you intend.</p>
+      <p>Everything runs <strong>on your computer</strong>. Your files are never uploaded to the internet.</p>
+    </section>
+
+    <section>
+      <h2>Download</h2>
+      <p>Get the latest version from the <strong>Releases</strong> page. You’ll see several files; pick the one that matches your system:</p>
+      <ul>
+        <li><strong>Windows</strong> — choose the file that ends in <code>.msi</code> (installer) or <code>.nsis.exe</code> (setup). Use the <code>x64</code> version for most PCs.</li>
+        <li><strong>macOS (Apple)</strong> — choose the <code>.dmg</code> file. If you have an M1/M2/M3 Mac (Apple chip), use <code>aarch64</code>; for Intel Macs, use <code>x64</code>.</li>
+        <li><strong>Linux</strong> — choose <code>.deb</code> (Debian/Ubuntu), <code>.rpm</code> (Fedora/Red Hat), or <code>.AppImage</code> (runs on most distributions).</li>
+      </ul>
+      <p class="cta"><a href="https://github.com/theotternews/media-metadata-cleaner/releases" class="button">Go to Releases →</a></p>
+    </section>
+
+    <section>
+      <h2>Installation</h2>
+
+      <h3>Windows</h3>
+      <ol>
+        <li>Open the downloaded <code>.msi</code> or <code>.exe</code> file.</li>
+        <li>Follow the installer (Next → Next). You may need to allow the app if Windows asks.</li>
+        <li>When it’s done, open <strong>Media Metadata Cleaner</strong> from the Start menu or desktop.</li>
+      </ol>
+
+      <h3>macOS</h3>
+      <ol>
+        <li>Open the downloaded <code>.dmg</code> file.</li>
+        <li>Drag <strong>Media Metadata Cleaner</strong> into your <strong>Applications</strong> folder.</li>
+        <li>Open it from Applications. The first time, macOS may say it’s from an unidentified developer—click <strong>Open</strong> in System Settings (or Security & Privacy) to allow it.</li>
+      </ol>
+
+      <h3>Linux</h3>
+      <ul>
+        <li><strong>.deb (Ubuntu, Debian):</strong> Double‑click the file to open the software installer, then click Install. Or in a terminal: <code>sudo dpkg -i media-metadata-cleaner-linux_*_amd64.deb</code></li>
+        <li><strong>.rpm (Fedora, etc.):</strong> Open the file with your package manager, or in a terminal: <code>sudo rpm -i media-metadata-cleaner-linux-*-1.x86_64.rpm</code></li>
+        <li><strong>.AppImage:</strong> Make the file executable (right‑click → Properties → Permissions, or <code>chmod +x filename.AppImage</code>), then double‑click to run.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>How to use</h2>
+      <ol class="steps">
+        <li><strong>Set options (optional).</strong> You can leave the defaults. Useful choices:
+          <ul>
+            <li><strong>Show media</strong> — Leave checked to see image previews; uncheck if you’re cleaning many files and the app feels slow.</li>
+            <li><strong>View metadata only (don’t clean)</strong> — Check this if you only want to see what metadata is in the file without changing it.</li>
+            <li><strong>Save cleaned file</strong> — By default, the app creates a new file with <code>-cleaned</code> in the name (e.g. <code>photo.jpg</code> → <code>photo-cleaned.jpg</code>). You can change this to overwrite the original or use a random name, and choose which folder to save in.</li>
+          </ul>
+        </li>
+        <li><strong>Click “Choose media files…”</strong> and select one or more image or video files. You can select multiple at once.</li>
+        <li><strong>Click “Process.”</strong> The app will clean each file and show a list of results.</li>
+        <li><strong>Check the results.</strong> Each file gets a row:
+          <ul>
+            <li><strong>Green</strong> — Succeeded.</li>
+            <li><strong>Yellow</strong> — Completed with warnings (you can expand the row to see details).</li>
+            <li><strong>Red</strong> — Something went wrong (expand the row to see the error).</li>
+          </ul>
+          Click a row to expand it and see the original vs cleaned metadata, or any errors or warnings.
+        </li>
+        <li>Use the <strong>Search</strong> box above the results to filter by filename or any text in the messages.</li>
+      </ol>
+      <p>Your cleaned files are saved according to the options you chose (by default, in the same folder as the originals, with <code>-cleaned</code> in the name).</p>
+    </section>
+
+    <section>
+      <h2>Tips and notes</h2>
+      <ul>
+        <li>All work is done on your machine. Nothing is sent to the internet.</li>
+        <li>Use the correct file extension for your image (e.g. a JPEG should end in <code>.jpg</code> or <code>.jpeg</code>, not <code>.png</code>).</li>
+        <li>If something doesn’t work or you have a suggestion, you can <a href="https://github.com/theotternews/media-metadata-cleaner/issues">report it or open an issue</a> on GitHub.</li>
+      </ul>
+    </section>
+
+    <footer>
+      <p><a href="https://github.com/theotternews/media-metadata-cleaner">Source code</a> · <a href="https://github.com/theotternews/media-metadata-cleaner/releases">Releases</a></p>
+      <p class="license">This project is released under the <a href="https://anticapitalist.software/">Anti-Capitalist Software License (v 1.4)</a>.</p>
+    </footer>
+  </main>
+</body>
+</html>
