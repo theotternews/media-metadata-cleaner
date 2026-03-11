@@ -12,9 +12,10 @@
   "app": {
     "windows": [
       {
-        "title": "media-metadata-cleaner",
-        "width": 800,
-        "height": 600
+        "title": "Media Metadata Cleaner",
+        "width": 1000,
+        "height": 800,
+        "maximized": true
       }
     ],
     "security": {
