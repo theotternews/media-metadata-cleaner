@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Media Metadata Cleaner</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
   <header>
     <h1>Media Metadata Cleaner</h1>
-    <p class="tagline">Remove hidden metadata from your photos and videos—on your own computer.</p>
+    <p class="tagline">Remove hidden metadata from your photos and videos.</p>
   </header>
 
   <main>
@@ -17,54 +18,81 @@
       <h2>Contents</h2>
       <ul>
         <li><a href="#what">What does this tool do?</a></li>
-        <li><a href="#download">Download</a></li>
         <li><a href="#installation">Installation</a></li>
         <li><a href="#how-to-use">How to use</a></li>
-        <li><a href="#tips">Tips and notes</a></li>
+        <li><a href="#notes">Notes</a></li>
       </ul>
     </nav>
 
+    <figure class="screenshot">
+      <img src="screenshot.png" alt="Media Metadata Cleaner app window showing options and results" loading="lazy">
+    </figure>
+
     <section id="what">
       <h2>What does this tool do?</h2>
-      <p>Photos and videos often contain <strong>metadata</strong>: information stored inside the file, such as the date and time it was taken, the device or camera model, and sometimes location (GPS). This app lets you <strong>remove that metadata</strong> before you share files.</p>
+      <p>Photos and videos contain <strong>metadata</strong>: information stored inside the file, such as the date and time it was taken, the device or camera model, and sometimes location (GPS). This app lets you <strong>remove that metadata</strong> before you share files.</p>
       <p>Everything runs <strong>on your computer</strong>. Your data or files are never uploaded to the internet.</p>
-      <p>The app is free and open source. You can <a href="https://github.com/theotternews/media-metadata-cleaner">view the source code on GitHub</a>, and the code can be audited by anyone to make sure it's not doing anything nefarious.</p>
+      <p>The app is <strong>free and open source</strong>. You can <a href="https://github.com/theotternews/media-metadata-cleaner">view the source code on GitHub</a>, and the code can be audited by anyone to make sure it's not doing anything nefarious.</p>
     </section>
 
-    <section id="download">
-      <h2>Download</h2>
-      <p>Download the installer for your system:</p>
-      <ul>
-        <li><strong>Windows</strong> — download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-windows_0.4.0_x64_en-US.msi">installer (msi)</a>, </li>
-        <li><strong>macOS</strong> — download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-macos_0.4.0_x64_en-US.dmg">installer (dmg)</a>.</li>
-        <li><strong>Linux</strong> — download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-linux_0.4.0_amd64.deb">.deb</a>, <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-linux-1.0.0-1.x86_64.rpm">.rpm</a>, or <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-linux-1.0.0-1.x86_64.AppImage">.AppImage</a> (runs on most distributions).</li>
-        <li><strong>Source</strong> — download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/">source code (zip)</a> and build it yourself.</li>
-      </ul>
-    </section>
 
     <section id="installation">
       <h2>Installation</h2>
 
       <h3>Windows</h3>
       <ol>
+        <li>Download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-windows_0.4.0_x64_en-US.msi">installer (msi)</a>.</li>
         <li>Open the downloaded installer file.</li>
-        <li>If windows presents the blue window with the text "Windows protected your PC", click "More info" and then "Run anyway." (Windows did not protect your PC, I just did not pay Microsoft to disable this warning)</li>
+        <li>If windows presents the blue window with the text "Windows protected your PC":
+          <ul>
+            <li>click "More info"
+            <li>click "Run anyway."
+            <li>(Windows did not protect your PC, I just did not pay Microsoft to disable this warning)</li>
+          </ul>
+        </li>
         <li>Follow the installer instructions.</li>
-        <li>When it’s done, open "Media Metadata Cleaner" from the Start menu or desktop.</li>
+        <li>Open "Media Metadata Cleaner" from the Start menu or desktop.</li>
       </ol>
 
       <h3>macOS</h3>
       <ol>
+        <li>Download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-macos_0.4.0_x64_en-US.dmg">installer (dmg)</a>.</li>
         <li>Open the downloaded <code>.dmg</code> file.</li>
         <li>Drag <strong>Media Metadata Cleaner</strong> into your <strong>Applications</strong> folder.</li>
-        <li>Open it from Applications. The first time, macOS may say it’s from an unidentified developer—Open Settings → Privacy and Security → scroll down to Security and click "Open Anyway" under "media-metadata-cleaner" was blocked from use.</li>
+        <li>Open it from Applications.
+        <li>The first time, macOS may say it’s from an unidentified developer:
+          <ul>
+            <li>Open Settings</li>
+            <li>click "Privacy and Security"</li>
+            <li>scroll down to Security</li>
+            <li>click "Open Anyway" under "media-metadata-cleaner" was blocked from use.</li>
+          </ul>
+        </li>
       </ol>
 
       <h3>Linux</h3>
       <ul>
-        <li><strong>.deb (Ubuntu, Debian):</strong> Double‑click the file to open the software installer, then click Install. Or in a terminal: <code>sudo dpkg -i media-metadata-cleaner-linux_*_amd64.deb</code></li>
-        <li><strong>.rpm (Fedora, etc.):</strong> Open the file with your package manager, or in a terminal: <code>sudo rpm -i media-metadata-cleaner-linux-*-1.x86_64.rpm</code></li>
-        <li><strong>.AppImage:</strong> Make the file executable (right‑click → Properties → Permissions, or <code>chmod +x filename.AppImage</code>), then double‑click to run.</li>
+        <li><strong>Ubuntu, Debian:</strong>
+          <ul>
+            <li>Download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-linux_0.4.0_amd64.deb">.deb package</a></li>
+            <li>double‑click it to open the software installer and click Install</li>
+            <li>Or in a terminal: <code>sudo dpkg -i media-metadata-cleaner-linux_*_amd64.deb</code></li>
+          </ul>
+        </li>
+        <li><strong>Fedora, Red Hat, CentOS, etc.:</strong>
+          <ul>
+            <li>Download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-linux-1.0.0-1.x86_64.rpm">.rpm package</a></li>
+            <li>open it with your package manager</li>
+            <li>Or in a terminal: <code>sudo rpm -i media-metadata-cleaner-linux-*-1.x86_64.rpm</code></li>
+          </ul>
+        </li>
+        <li><strong>Other Linux distributions:</strong>
+          <ul>
+            <li>Download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-linux-1.0.0-1.x86_64.AppImage">.AppImage file</a></li>
+            <li>make it executable (right‑click → Properties → Permissions, or <code>chmod +x filename.AppImage</code>)</li>
+            <li>then double‑click to run</li>
+          </ul>
+        </li>
       </ul>
     </section>
 
@@ -75,7 +103,7 @@
           <ul>
             <li><strong>Show media</strong> — Leave checked to see image previews; uncheck if you’re cleaning many files and the app feels slow.</li>
             <li><strong>View metadata only (don’t clean)</strong> — Check this if you only want to see what metadata is in the file without changing it.</li>
-            <li><strong>Save cleaned file</strong> — By default, the app creates a new file with <code>-cleaned</code> in the name (e.g. <code>photo.jpg</code> → <code>photo-cleaned.jpg</code>). You can change this to overwrite the original or use a random name, and choose which folder to save in.</li>
+            <li><strong>Save cleaned file</strong> — Choose the name and destination folder for the cleaned file.</li>
           </ul>
         </li>
         <li><strong>Click “Choose media files…”</strong> and select one or more image or video files. You can select multiple at once.</li>
@@ -93,8 +121,8 @@
       <p>Your cleaned files are saved according to the options you chose (by default, in the same folder as the originals, with <code>-cleaned</code> in the name).</p>
     </section>
 
-    <section id="tips">
-      <h2>Tips and notes</h2>
+    <section id="notes">
+      <h2>Notes</h2>
       <ul>
         <li>Use the correct file extension for your image (e.g. a JPEG should end in <code>.jpg</code> or <code>.jpeg</code>, not <code>.png</code>).</li>
         <li>If something doesn’t work or you have a suggestion, you can <a href="https://github.com/theotternews/media-metadata-cleaner/issues">report it or open an issue</a> on GitHub.</li>
