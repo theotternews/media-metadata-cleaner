@@ -3,8 +3,8 @@
   --muted: #555;
   --bg: #fafafa;
   --card: #fff;
-  --accent: #0c5460;
-  --accent-hover: #0a4552;
+  --accent: #0000ee;       /* standard link blue */
+  --accent-hover: #0000aa; /* slightly darker on hover */
   --border: #e0e0e0;
   --code-bg: #f0f0f0;
 }
