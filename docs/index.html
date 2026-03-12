@@ -13,38 +13,51 @@
   </header>
 
   <main>
-    <section>
-      <h2>What does this tool do?</h2>
-      <p>Photos and videos often contain <strong>metadata</strong>: information stored inside the file, such as the date and time it was taken, the device or camera model, and sometimes location (GPS). This app lets you <strong>remove that metadata</strong> before you share files, so you don’t accidentally share more than you intend.</p>
-      <p>Everything runs <strong>on your computer</strong>. Your files are never uploaded to the internet.</p>
-    </section>
-
-    <section>
-      <h2>Download</h2>
-      <p>Get the latest version from the <strong>Releases</strong> page. You’ll see several files; pick the one that matches your system:</p>
+    <nav class="toc" aria-label="Table of contents">
+      <h2>Contents</h2>
       <ul>
-        <li><strong>Windows</strong> — choose the file that ends in <code>.msi</code> (installer) or <code>.nsis.exe</code> (setup). Use the <code>x64</code> version for most PCs.</li>
-        <li><strong>macOS (Apple)</strong> — choose the <code>.dmg</code> file. If you have an M1/M2/M3 Mac (Apple chip), use <code>aarch64</code>; for Intel Macs, use <code>x64</code>.</li>
-        <li><strong>Linux</strong> — choose <code>.deb</code> (Debian/Ubuntu), <code>.rpm</code> (Fedora/Red Hat), or <code>.AppImage</code> (runs on most distributions).</li>
+        <li><a href="#what">What does this tool do?</a></li>
+        <li><a href="#download">Download</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#how-to-use">How to use</a></li>
+        <li><a href="#tips">Tips and notes</a></li>
       </ul>
-      <p class="cta"><a href="https://github.com/theotternews/media-metadata-cleaner/releases" class="button">Go to Releases →</a></p>
+    </nav>
+
+    <section id="what">
+      <h2>What does this tool do?</h2>
+      <p>Photos and videos often contain <strong>metadata</strong>: information stored inside the file, such as the date and time it was taken, the device or camera model, and sometimes location (GPS). This app lets you <strong>remove that metadata</strong> before you share files.</p>
+      <p>Everything runs <strong>on your computer</strong>. Your data or files are never uploaded to the internet.</p>
+      <p>The app is free and open source. You can <a href="https://github.com/theotternews/media-metadata-cleaner">view the source code on GitHub</a>, and the code can be audited by anyone to make sure it's not doing anything nefarious.</p>
     </section>
 
-    <section>
+    <section id="download">
+      <h2>Download</h2>
+      <p>Download the installer for your system:</p>
+      <ul>
+        <li><strong>Windows</strong> — download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-windows_0.4.0_x64_en-US.msi">installer (msi)</a>, </li>
+        <li><strong>macOS</strong> — download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-macos_0.4.0_x64_en-US.dmg">installer (dmg)</a>.</li>
+        <li><strong>Linux</strong> — download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-linux_0.4.0_amd64.deb">.deb</a>, <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-linux-1.0.0-1.x86_64.rpm">.rpm</a>, or <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/media-metadata-cleaner-linux-1.0.0-1.x86_64.AppImage">.AppImage</a> (runs on most distributions).</li>
+        <li><strong>Source</strong> — download the <a href="https://github.com/theotternews/media-metadata-cleaner/releases/latest/">source code (zip)</a> and build it yourself.</li>
+      </ul>
+    </section>
+
+    <section id="installation">
       <h2>Installation</h2>
 
       <h3>Windows</h3>
       <ol>
-        <li>Open the downloaded <code>.msi</code> or <code>.exe</code> file.</li>
-        <li>Follow the installer (Next → Next). You may need to allow the app if Windows asks.</li>
-        <li>When it’s done, open <strong>Media Metadata Cleaner</strong> from the Start menu or desktop.</li>
+        <li>Open the downloaded installer file.</li>
+        <li>If windows presents the blue window with the text "Windows protected your PC", click "More info" and then "Run anyway." (Windows did not protect your PC, I just did not pay Microsoft to disable this warning)</li>
+        <li>Follow the installer instructions.</li>
+        <li>When it’s done, open "Media Metadata Cleaner" from the Start menu or desktop.</li>
       </ol>
 
       <h3>macOS</h3>
       <ol>
         <li>Open the downloaded <code>.dmg</code> file.</li>
         <li>Drag <strong>Media Metadata Cleaner</strong> into your <strong>Applications</strong> folder.</li>
-        <li>Open it from Applications. The first time, macOS may say it’s from an unidentified developer—click <strong>Open</strong> in System Settings (or Security & Privacy) to allow it.</li>
+        <li>Open it from Applications. The first time, macOS may say it’s from an unidentified developer—Open Settings → Privacy and Security → scroll down to Security and click "Open Anyway" under "media-metadata-cleaner" was blocked from use.</li>
       </ol>
 
       <h3>Linux</h3>
@@ -55,10 +68,10 @@
       </ul>
     </section>
 
-    <section>
+    <section id="how-to-use">
       <h2>How to use</h2>
       <ol class="steps">
-        <li><strong>Set options (optional).</strong> You can leave the defaults. Useful choices:
+        <li><strong>Set options</strong>
           <ul>
             <li><strong>Show media</strong> — Leave checked to see image previews; uncheck if you’re cleaning many files and the app feels slow.</li>
             <li><strong>View metadata only (don’t clean)</strong> — Check this if you only want to see what metadata is in the file without changing it.</li>
@@ -66,7 +79,7 @@
           </ul>
         </li>
         <li><strong>Click “Choose media files…”</strong> and select one or more image or video files. You can select multiple at once.</li>
-        <li><strong>Click “Process.”</strong> The app will clean each file and show a list of results.</li>
+        <li><strong>Click “Process.”</strong> The app will process each file and show a list of results.</li>
         <li><strong>Check the results.</strong> Each file gets a row:
           <ul>
             <li><strong>Green</strong> — Succeeded.</li>
@@ -80,10 +93,9 @@
       <p>Your cleaned files are saved according to the options you chose (by default, in the same folder as the originals, with <code>-cleaned</code> in the name).</p>
     </section>
 
-    <section>
+    <section id="tips">
       <h2>Tips and notes</h2>
       <ul>
-        <li>All work is done on your machine. Nothing is sent to the internet.</li>
         <li>Use the correct file extension for your image (e.g. a JPEG should end in <code>.jpg</code> or <code>.jpeg</code>, not <code>.png</code>).</li>
         <li>If something doesn’t work or you have a suggestion, you can <a href="https://github.com/theotternews/media-metadata-cleaner/issues">report it or open an issue</a> on GitHub.</li>
       </ul>

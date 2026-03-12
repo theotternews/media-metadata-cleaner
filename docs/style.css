@@ -113,6 +113,33 @@ a:hover {
   text-decoration: none;
 }
 
+.toc {
+  margin-bottom: 2rem;
+  padding: 1rem 1.25rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+}
+
+.toc h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.toc ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.toc li {
+  margin-bottom: 0.25rem;
+}
+
+.toc li:last-child {
+  margin-bottom: 0;
+}
+
 footer {
   margin-top: 2.5rem;
   padding-top: 1.5rem;
