@@ -32,11 +32,6 @@ if [[ -z "$CURRENT_VERSION" ]]; then
   exit 1
 fi
 
-if [[ "$CURRENT_VERSION" == "$NEW_VERSION" ]]; then
-  echo "Version is already $NEW_VERSION; nothing to do."
-  exit 0
-fi
-
 echo "Updating version from $CURRENT_VERSION -> $NEW_VERSION"
 
 ###############################################################################
@@ -96,34 +91,24 @@ fi
 
 ###############################################################################
 # docs/index.html download URLs
+# Format: .../releases/download/vX.Y.Z/filename (not releases/latest/)
+# Filenames: _version_ for msi/dmg/deb/AppImage, -version-1 for rpm
 ###############################################################################
 DOCS_INDEX="$REPO_ROOT/docs/index.html"
 if [[ -f "$DOCS_INDEX" ]]; then
   echo "Updating docs/index.html download links"
 
-  # Windows MSI
-  sed -i -E \
-    "s/media-metadata-cleaner-${CURRENT_VERSION}_x64_en-US\.msi/media-metadata-cleaner-${NEW_VERSION}_x64_en-US.msi/g" \
+  BASE="https://github.com/theotternews/media-metadata-cleaner/releases"
+  # Replace any existing release URL for each asset with the correct vNEW_VERSION URL
+  sed -i -E "s|${BASE}/[^\"]*media-metadata-cleaner[^\"]*\.msi|${BASE}/download/v${NEW_VERSION}/media-metadata-cleaner_${NEW_VERSION}_x64_en-US.msi|g" \
     "$DOCS_INDEX"
-
-  # macOS DMG
-  sed -i -E \
-    "s/media-metadata-cleaner-${CURRENT_VERSION}_x64_en-US\.dmg/media-metadata-cleaner-${NEW_VERSION}_x64_en-US.dmg/g" \
+  sed -i -E "s|${BASE}/[^\"]*media-metadata-cleaner[^\"]*\.dmg|${BASE}/download/v${NEW_VERSION}/media-metadata-cleaner_${NEW_VERSION}_aarch64.dmg|g" \
     "$DOCS_INDEX"
-
-  # Linux .deb (Ubuntu/Debian)
-  sed -i -E \
-    "s/media-metadata-cleaner-${CURRENT_VERSION}_amd64\.deb/media-metadata-cleaner-${NEW_VERSION}_amd64.deb/g" \
+  sed -i -E "s|${BASE}/[^\"]*media-metadata-cleaner[^\"]*\.deb|${BASE}/download/v${NEW_VERSION}/media-metadata-cleaner_${NEW_VERSION}_amd64.deb|g" \
     "$DOCS_INDEX"
-
-  # Linux .rpm: linux-<version>-1.x86_64.rpm
-  sed -i -E \
-    "s/media-metadata-cleaner-${CURRENT_VERSION}-1\.x86_64\.rpm/media-metadata-cleaner-${NEW_VERSION}-1.x86_64.rpm/g" \
+  sed -i -E "s|${BASE}/[^\"]*media-metadata-cleaner[^\"]*\.rpm|${BASE}/download/v${NEW_VERSION}/media-metadata-cleaner-${NEW_VERSION}-1.x86_64.rpm|g" \
     "$DOCS_INDEX"
-
-  # Linux .AppImage: linux-<version>-1.x86_64.AppImage
-  sed -i -E \
-    "s/media-metadata-cleaner-${CURRENT_VERSION}-1\.x86_64\.AppImage/media-metadata-cleaner-${NEW_VERSION}-1.x86_64.AppImage/g" \
+  sed -i -E "s|${BASE}/[^\"]*media-metadata-cleaner[^\"]*\.AppImage|${BASE}/download/v${NEW_VERSION}/media-metadata-cleaner_${NEW_VERSION}_amd64.AppImage|g" \
     "$DOCS_INDEX"
 fi
 
