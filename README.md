@@ -2,7 +2,9 @@
 
 Desktop app that removes metadata from images using [exiftool](https://exiftool.org).
 
-**User guide (installation & usage):** [GitHub Pages](https://theotternews.github.io/media-metadata-cleaner/) — novice-friendly instructions for all platforms. (To enable: repo **Settings → Pages → Source**: Deploy from branch, branch `main`, folder `/docs`.)
+[User guide (installation & usage](https://theotternews.github.io/media-metadata-cleaner/)
+
+![Screenshot](docs/screenshot.png)
 
 ## Installation
 
